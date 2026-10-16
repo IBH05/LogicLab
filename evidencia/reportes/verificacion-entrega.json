@@ -1,0 +1,114 @@
+{
+  "timestamp": "2026-10-16T04:49:25.466Z",
+  "originalesVerificados": 5,
+  "production": [
+    {
+      "archivo": "dist/.gitkeep",
+      "bytes": 0
+    },
+    {
+      "archivo": "dist/assets/index-CDr4ID7j.css",
+      "bytes": 23160
+    },
+    {
+      "archivo": "dist/assets/index-D5MYvD1C.js",
+      "bytes": 259565
+    },
+    {
+      "archivo": "dist/index.html",
+      "bytes": 568
+    }
+  ],
+  "dependencies": [
+    {
+      "name": "lucide-react",
+      "version": "1.57.0",
+      "license": "ISC",
+      "runtime": true
+    },
+    {
+      "name": "react",
+      "version": "19.3.1",
+      "license": "MIT",
+      "runtime": true
+    },
+    {
+      "name": "react-dom",
+      "version": "19.3.1",
+      "license": "MIT",
+      "runtime": true
+    },
+    {
+      "name": "@axe-core/playwright",
+      "version": "4.14.0",
+      "license": "MPL-2.0",
+      "runtime": false
+    },
+    {
+      "name": "@playwright/test",
+      "version": "1.64.1",
+      "license": "Apache-2.0",
+      "runtime": false
+    },
+    {
+      "name": "@tailwindcss/vite",
+      "version": "4.3.3",
+      "license": "MIT",
+      "runtime": false
+    },
+    {
+      "name": "@types/node",
+      "version": "26.6.5",
+      "license": "MIT",
+      "runtime": false
+    },
+    {
+      "name": "@types/react",
+      "version": "19.3.0",
+      "license": "MIT",
+      "runtime": false
+    },
+    {
+      "name": "@types/react-dom",
+      "version": "19.3.0",
+      "license": "MIT",
+      "runtime": false
+    },
+    {
+      "name": "@vitejs/plugin-react",
+      "version": "6.1.2",
+      "license": "MIT",
+      "runtime": false
+    },
+    {
+      "name": "tailwindcss",
+      "version": "4.3.3",
+      "license": "MIT",
+      "runtime": false
+    },
+    {
+      "name": "typescript",
+      "version": "7.0.2",
+      "license": "Apache-2.0",
+      "runtime": false
+    },
+    {
+      "name": "vite",
+      "version": "8.3.4",
+      "license": "MIT",
+      "runtime": false
+    },
+    {
+      "name": "vitest",
+      "version": "5.0.5",
+      "license": "MIT",
+      "runtime": false
+    }
+  ],
+  "secretScan": {
+    "findings": [],
+    "scope": "Código fuente, configuración, lockfile, docs y pruebas. Patrones de credenciales comunes; no es garantía exhaustiva."
+  },
+  "root": ".",
+  "localLinks": "OK"
+}

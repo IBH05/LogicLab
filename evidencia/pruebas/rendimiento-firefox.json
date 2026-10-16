@@ -1,0 +1,93 @@
+{
+  "timestamp": "2026-10-16T04:42:15.391Z",
+  "browser": "157.0",
+  "project": "firefox",
+  "cpu": "AMD Ryzen 5 5600G with Radeon Graphics         ",
+  "platform": "win32",
+  "release": "10.0.26200",
+  "node": "v24.12.0",
+  "conditions": "Build de producción local; sin throttling; página cargada; clic a tabla visible y dos frames; 2 a 6 variables; 5 repeticiones por expresión. Incluye latencia del controlador.",
+  "samples": [
+    {
+      "expression": "A+B",
+      "elapsedMs": 135.1167000000005
+    },
+    {
+      "expression": "A+B",
+      "elapsedMs": 114.72380000000157
+    },
+    {
+      "expression": "A+B",
+      "elapsedMs": 108.78549999999996
+    },
+    {
+      "expression": "A+B",
+      "elapsedMs": 115.80579999999827
+    },
+    {
+      "expression": "A+B",
+      "elapsedMs": 89.05919999999969
+    },
+    {
+      "expression": "(A+B)*(A'+C)+B*C",
+      "elapsedMs": 101.11019999999917
+    },
+    {
+      "expression": "(A+B)*(A'+C)+B*C",
+      "elapsedMs": 89.3786999999993
+    },
+    {
+      "expression": "(A+B)*(A'+C)+B*C",
+      "elapsedMs": 104.73440000000119
+    },
+    {
+      "expression": "(A+B)*(A'+C)+B*C",
+      "elapsedMs": 91.23940000000039
+    },
+    {
+      "expression": "(A+B)*(A'+C)+B*C",
+      "elapsedMs": 91.7440000000006
+    },
+    {
+      "expression": "A^B^C^D^E^F",
+      "elapsedMs": 116.9986000000008
+    },
+    {
+      "expression": "A^B^C^D^E^F",
+      "elapsedMs": 126.07890000000043
+    },
+    {
+      "expression": "A^B^C^D^E^F",
+      "elapsedMs": 120.32480000000032
+    },
+    {
+      "expression": "A^B^C^D^E^F",
+      "elapsedMs": 125.6319999999996
+    },
+    {
+      "expression": "A^B^C^D^E^F",
+      "elapsedMs": 125.72719999999936
+    },
+    {
+      "expression": "(A+B+C)*(D+E+F)",
+      "elapsedMs": 129.8780999999999
+    },
+    {
+      "expression": "(A+B+C)*(D+E+F)",
+      "elapsedMs": 125.06000000000131
+    },
+    {
+      "expression": "(A+B+C)*(D+E+F)",
+      "elapsedMs": 125.26850000000013
+    },
+    {
+      "expression": "(A+B+C)*(D+E+F)",
+      "elapsedMs": 126.15819999999985
+    },
+    {
+      "expression": "(A+B+C)*(D+E+F)",
+      "elapsedMs": 123.99319999999898
+    }
+  ],
+  "maxMs": 135.1167000000005
+}

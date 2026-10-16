@@ -1,0 +1,116 @@
+[
+  {
+    "id": "link-in-text-block",
+    "impact": "serious",
+    "tags": [
+      "cat.color",
+      "wcag2a",
+      "wcag141",
+      "TTv5",
+      "TT13.a",
+      "EN-301-549",
+      "EN-9.1.4.1",
+      "RGAAv4",
+      "RGAA-10.6.1"
+    ],
+    "description": "Ensure links are distinguished from surrounding text in a way that does not rely on color",
+    "help": "Links must be distinguishable without relying on color",
+    "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/link-in-text-block?application=playwright",
+    "nodes": [
+      {
+        "any": [
+          {
+            "id": "link-in-text-block",
+            "data": {
+              "messageKey": "fgContrast",
+              "contrastRatio": 1.17,
+              "requiredContrastRatio": 3,
+              "nodeColor": "#4f39f6",
+              "parentColor": "#45556c"
+            },
+            "relatedNodes": [
+              {
+                "html": "<p class=\"text-xs text-slate-600 mb-1\">Copia este texto y pégalo en visores como <a href=\"https://dreampuf.github.io/GraphvizOnline/\" target=\"_blank\" rel=\"noreferrer\" class=\"text-indigo-600 hover:underline\">Graphviz Online</a>.</p>",
+                "target": [
+                  ".mb-1"
+                ]
+              }
+            ],
+            "impact": "serious",
+            "message": "The link has insufficient color contrast of 1.17:1 with the surrounding text. (Minimum contrast is 3:1, link text: #4f39f6, surrounding text: #45556c)"
+          },
+          {
+            "id": "link-in-text-block-style",
+            "data": null,
+            "relatedNodes": [
+              {
+                "html": "<p class=\"text-xs text-slate-600 mb-1\">Copia este texto y pégalo en visores como <a href=\"https://dreampuf.github.io/GraphvizOnline/\" target=\"_blank\" rel=\"noreferrer\" class=\"text-indigo-600 hover:underline\">Graphviz Online</a>.</p>",
+                "target": [
+                  ".mb-1"
+                ]
+              }
+            ],
+            "impact": "serious",
+            "message": "The link has no styling (such as underline) to distinguish it from the surrounding text"
+          }
+        ],
+        "all": [],
+        "none": [],
+        "impact": "serious",
+        "html": "<a href=\"https://dreampuf.github.io/GraphvizOnline/\" target=\"_blank\" rel=\"noreferrer\" class=\"text-indigo-600 hover:underline\">Graphviz Online</a>",
+        "target": [
+          "a"
+        ],
+        "failureSummary": "Fix any of the following:\n  The link has insufficient color contrast of 1.17:1 with the surrounding text. (Minimum contrast is 3:1, link text: #4f39f6, surrounding text: #45556c)\n  The link has no styling (such as underline) to distinguish it from the surrounding text"
+      }
+    ]
+  },
+  {
+    "id": "scrollable-region-focusable",
+    "impact": "serious",
+    "tags": [
+      "cat.keyboard",
+      "wcag2a",
+      "wcag211",
+      "wcag213",
+      "TTv5",
+      "TT4.a",
+      "EN-301-549",
+      "EN-9.2.1.1",
+      "EN-9.2.1.3",
+      "RGAAv4",
+      "RGAA-7.3.2"
+    ],
+    "description": "Ensure elements that have scrollable content are accessible by keyboard in Safari",
+    "help": "Scrollable region must have keyboard access",
+    "helpUrl": "https://dequeuniversity.com/rules/axe/4.14/scrollable-region-focusable?application=playwright",
+    "nodes": [
+      {
+        "any": [
+          {
+            "id": "focusable-content",
+            "data": null,
+            "relatedNodes": [],
+            "impact": "serious",
+            "message": "Element should have focusable content"
+          },
+          {
+            "id": "focusable-element",
+            "data": null,
+            "relatedNodes": [],
+            "impact": "serious",
+            "message": "Element should be focusable"
+          }
+        ],
+        "all": [],
+        "none": [],
+        "impact": "serious",
+        "html": "<div class=\"overflow-auto bg-slate-50 border border-slate-200 rounded-xl shadow-inner p-6 custom-scrollbar relative\">",
+        "target": [
+          ".overflow-auto"
+        ],
+        "failureSummary": "Fix any of the following:\n  Element should have focusable content\n  Element should be focusable"
+      }
+    ]
+  }
+]

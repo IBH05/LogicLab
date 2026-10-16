@@ -1,0 +1,7 @@
+evidencia/
+docs/
+tests/
+tmp/
+*.pdf
+*.docx
+calculadora_booleana.tsx

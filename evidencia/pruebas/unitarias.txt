@@ -1,0 +1,17 @@
+
+> logiclab@0.1.0 test
+> vitest run
+
+
+ RUN  v5.0.5 C:/Users/PC/Desktop/LogicLab
+
+ ✓ tests/unit/boolean.test.ts (25 tests) 454ms
+   ✓ RNF-03 equivalencia independiente (3)
+     ✓ SOP, POS, NAND y NOR conservan las 256 funciones de tres variables 442ms
+
+ Test Files  1 passed (1)
+      Tests  25 passed (25)
+   Start at  22:46:05
+   Duration  673ms (tests 87%, transform 8%, import 3%, worker 1%)
+
+JSON report written to C:/Users/PC/Desktop/LogicLab/evidencia/pruebas/unitarias.json
