@@ -2,13 +2,6 @@
 
 Aplicación web educativa para aprender álgebra booleana mediante expresiones, tablas de verdad, simplificación y circuitos lógicos interactivos. El prototipo conserva la interfaz y el motor del archivo original `calculadora_booleana.tsx`, integrados en React, TypeScript y Vite.
 
-**Estado:** prototipo local ejecutable; publicación actualizada en GitHub y despliegue en Vercel pendientes de autorización. **La simplificación paso a paso y las explicaciones por transformación aún no están implementadas.** Los cuatro Sprints están planificados.
-
-- Repositorio existente: [IBH05/LogicLab](https://github.com/IBH05/LogicLab).
-- Aplicación desplegada: **pendiente de URL de producción verificada**.
-- Gestión: Jira, proyecto **LogicLab-Software**; enlace al tablero pendiente.
-- [Informe de configuración](evidencia/reportes/CONFIGURACION.md), [auditoría](evidencia/reportes/AUDITORIA.md) y [pruebas](docs/PRUEBAS.md).
-
 ## Problema, público y objetivos
 
 Los documentos académicos describen dificultades de estudiantes para resolver expresiones lógicas y comprender su procedimiento. La propuesta reúne herramientas que normalmente consultan por separado: tablas, simplificaciones, reglas y compuertas. La encuesta citada en los PDF tiene 20 participantes; no constituye por sí sola una validación del producto ni un estudio comercial concluyente.
