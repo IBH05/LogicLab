@@ -41,13 +41,3 @@ Las constantes 0 y 1 se representan como hojas reservadas del AST y no se cuenta
 Se enumeran hasta 2^12 combinaciones. Con más de 12 variables se mantiene el comportamiento original: se omiten tabla y simplificación, pero puede verse el árbol de la entrada. La entrada está limitada a 2000 caracteres. El algoritmo combina implicantes y selecciona esenciales; la cobertura restante es voraz. Por ello **no se garantiza una expresión globalmente mínima**, aunque la equivalencia sí puede comprobarse. La UI valida SOP frente a cada fila original. Las pruebas también verifican POS y las representaciones NAND/NOR con un evaluador independiente de compuertas universales de múltiples entradas.
 
 Se corrigió la polaridad de los literales NOR derivados del complemento. El resto del algoritmo de simplificación se conserva. No se implementó una traza de transformaciones educativas: RF-02 y RF-03 siguen incompletos.
-
-## Estado y recursos
-
-Los resultados, errores, pestaña activa y combinación seleccionada viven en estado React. Cambiar de fila anota una copia del AST; la visualización contrae NOT sobre AND/OR/XOR a NAND/NOR/XNOR. El cálculo es síncrono y puede bloquear la interfaz con expresiones grandes. Un Web Worker y presupuestos de cómputo son mejoras pendientes.
-
-Vite sólo publica `dist/`, con HTML, JS y CSS. Los originales se conservan en raíz y se copian a `evidencia/`; no se importan desde `src/` ni se colocan en `public/`. `.vercelignore` evita enviarlos en cargas por CLI. Al importar Git, Vercel puede clonar evidencia para construir, pero los documentos no forman parte de la salida pública. No hay rutas de cliente distintas de `/`, por lo que no se requieren rewrites.
-
-## Decisión académica pendiente
-
-`U1Act1 - Equipo 3.docx` pide base de datos, usuarios, ejercicios, historial y progreso. Los PDF posteriores acotan seis funciones educativas y explican que las cuentas no están definidas. La aplicación actual cubre el prototipo de cálculo. El Product Owner y la docente deben reconciliar ambos alcances antes de declarar satisfecha la propuesta académica completa. No se agregó un backend sin especificación.
