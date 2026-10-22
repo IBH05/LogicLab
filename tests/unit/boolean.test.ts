@@ -62,6 +62,45 @@ describe('RF-04 y RF-06 resultados conocidos', () => {
   });
 });
 
+describe('RF-02 y RF-03 procedimiento verificable', () => {
+  it('registra una secuencia ordenada con ley y explicación para una reducción', () => {
+    const result = calculateExpression('A+A*B');
+
+    expect(result.steps.length).toBeGreaterThan(1);
+    expect(result.steps.at(-1)?.after).toBe('A');
+    expect(result.steps.every(step => step.equivalent)).toBe(true);
+    expect(result.steps.every(step => step.law.length > 0 && step.explanation.length > 0)).toBe(true);
+    expect(result.steps.map(step => step.index)).toEqual(result.steps.map((_, index) => index + 1));
+    expect(result.steps.some(step => step.law.includes('Reducción') || step.law.includes('Absorción'))).toBe(true);
+    expect(result.stepsValidated).toBe(true);
+  });
+
+  it('explica cuando una expresión ya está simplificada', () => {
+    const result = calculateExpression('A');
+    const step = result.steps[0];
+
+    expect(result.sop).toBe('A');
+    expect(result.steps).toHaveLength(1);
+    expect(step.changed).toBe(false);
+    expect(step.law).toBe('Identidad');
+    expect(step.explanation).toMatch(/ya está simplificada/);
+    expect(step.equivalent).toBe(true);
+  });
+
+  it.each(['A*B', 'A+B', 'A^B', '0', '1', "(A+B)*(A'+C)+B*C"])('mantiene la equivalencia en cada paso de %s', expression => {
+    const result = calculateExpression(expression);
+
+    expect(result.stepsValidated).toBe(true);
+    expect(result.steps.at(-1)?.after).toBe(result.sop);
+    expect(result.steps.every(step => step.equivalent)).toBe(true);
+  });
+
+  it('no genera una traza para entradas inválidas porque detiene el cálculo', () => {
+    expect(() => calculateExpression('A&')).toThrow();
+    expect(() => calculateExpression('(A+B')).toThrow();
+  });
+});
+
 describe('RNF-03 equivalencia independiente', () => {
   it('NOR representa A y A negada correctamente', () => {
     for (const expression of ['A', "A'"]) {

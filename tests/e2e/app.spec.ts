@@ -20,6 +20,8 @@ test('RF-01/04/05/06 flujo completo y errores', async ({ page }, testInfo) => {
   await expect(page.getByText('Suma de Productos Simplificada (SOP)')).toBeVisible();
   await expect(page.getByText('Validación Interna:', { exact: true })).toBeVisible();
   await expect(page.getByText(/procedimiento paso a paso/)).toBeVisible();
+  await expect(page.getByText(/Ley:/).first()).toBeVisible();
+  await expect(page.getByText(/Explicación:/).first()).toBeVisible();
   await page.getByRole('button', { name: 'Formas Canónicas', exact: true }).click();
   await expect(page.getByText('Σ m(2, 3)', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'NAND / NOR', exact: true }).click();

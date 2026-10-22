@@ -5,6 +5,16 @@ type Token = { type: string; val: string };
 type Literal = { varIdx: number; isNot: boolean };
 export type QmResult = { terms: Literal[][]; isZero?: boolean; isOne?: boolean };
 
+export type SimplificationStep = {
+  index: number;
+  before: string;
+  after: string;
+  law: string;
+  explanation: string;
+  equivalent: boolean;
+  changed: boolean;
+};
+
 export const tokenize = (expr: string): Token[] => {
   if (expr.length > 2000) throw new Error('La expresión supera el límite de 2000 caracteres.');
   if (expr.includes('=')) {
@@ -294,6 +304,235 @@ export const formatSOP = (qmResult: QmResult, varNames: string[]) => {
   }).join(' + ');
 };
 
+const astPrecedence = (node: Ast): number => {
+  if (node.type === 'VAR') return 5;
+  if (node.type === 'NOT') return 4;
+  if (node.type === 'AND') return 3;
+  if (node.type === 'XOR') return 2;
+  return 1;
+};
+
+/** Convierte el AST a una expresión booleana legible para iniciar la traza. */
+export const formatAst = (node: Ast, parentPrecedence = 0): string => {
+  if (node.type === 'VAR') return node.name;
+
+  if (node.type === 'NOT') {
+    const child = formatAst(node.child, astPrecedence(node));
+    const expression = `${child}'`;
+    return astPrecedence(node) < parentPrecedence ? `(${expression})` : expression;
+  }
+
+  const precedence = astPrecedence(node);
+  const operator = node.type === 'AND' ? '*' : node.type === 'OR' ? '+' : '^';
+  const expression = `${formatAst(node.left, precedence)}${operator}${formatAst(node.right, precedence)}`;
+  return precedence < parentPrecedence ? `(${expression})` : expression;
+};
+
+type TraceRound = {
+  implicants: Implicant[];
+  combinations: { left: string; right: string; result: string }[];
+};
+
+const uniqueImplicants = (implicants: Implicant[]) => implicants.filter((implicant, index, all) =>
+  all.findIndex(candidate => candidate.val === implicant.val && candidate.dashes === implicant.dashes) === index
+);
+
+const formatImplicant = (implicant: Implicant, varNames: string[]) => {
+  const literals: string[] = [];
+  for (let i = 0; i < varNames.length; i++) {
+    const mask = 1 << ((varNames.length - 1) - i);
+    if ((implicant.dashes & mask) === 0) {
+      literals.push(`${varNames[i]}${(implicant.val & mask) === 0 ? "'" : ''}`);
+    }
+  }
+  return literals.length === 0 ? '1' : literals.join('*');
+};
+
+const formatImplicants = (implicants: Implicant[], varNames: string[]) => {
+  const unique = uniqueImplicants(implicants);
+  if (unique.length === 0) return '0';
+  if (unique.some(implicant => implicant.dashes === (1 << varNames.length) - 1)) return '1';
+
+  return unique
+    .map(implicant => formatImplicant(implicant, varNames))
+    .sort((left, right) => left.localeCompare(right))
+    .join(' + ');
+};
+
+const buildQmTraceRounds = (minterms: number[], numVars: number, varNames: string[]) => {
+  if (minterms.length === 0) return { rounds: [] as TraceRound[], primes: [] as Implicant[] };
+
+  let groups: Implicant[][] = Array.from({ length: numVars + 1 }, () => []);
+  minterms.forEach(minterm => {
+    const ones = minterm.toString(2).split('1').length - 1;
+    groups[ones].push(new Implicant(minterm, 0, [minterm]));
+  });
+
+  const rounds: TraceRound[] = [];
+  const primes: Implicant[] = [];
+  let combined = true;
+
+  while (combined) {
+    combined = false;
+    const nextGroups: Implicant[][] = Array.from({ length: numVars + 1 }, () => []);
+    const combinations: TraceRound['combinations'] = [];
+    const currentPrimes: Implicant[] = [];
+
+    for (let i = 0; i < groups.length - 1; i++) {
+      for (const left of groups[i]) {
+        for (const right of groups[i + 1]) {
+          if (!left.canCombine(right)) continue;
+
+          const result = left.combine(right);
+          left.used = true;
+          right.used = true;
+          combined = true;
+          combinations.push({
+            left: formatImplicant(left, varNames),
+            right: formatImplicant(right, varNames),
+            result: formatImplicant(result, varNames),
+          });
+
+          if (!nextGroups[i].some(candidate => candidate.val === result.val && candidate.dashes === result.dashes)) {
+            nextGroups[i].push(result);
+          }
+        }
+      }
+    }
+
+    for (const group of groups) {
+      for (const implicant of group) {
+        if (!implicant.used) currentPrimes.push(implicant);
+      }
+    }
+    primes.push(...currentPrimes);
+
+    if (combined) {
+      rounds.push({
+        implicants: uniqueImplicants([...currentPrimes, ...nextGroups.flat()]),
+        combinations,
+      });
+    }
+    groups = nextGroups.filter(group => group.length > 0);
+  }
+
+  return { rounds, primes: uniqueImplicants(primes) };
+};
+
+type TruthTableRow = { env: Environment; result: Bit };
+
+const expressionMatchesTable = (expression: string, table: TruthTableRow[]) => {
+  try {
+    const parsed = new Parser(tokenize(expression)).parse();
+    return table.every(row => evaluateAst(parsed, row.env) === row.result);
+  } catch {
+    return false;
+  }
+};
+
+const sumTerms = (expression: string) => expression === '0' ? [] : expression === '1' ? ['1'] : expression.split(' + ');
+
+const sameTerms = (left: string, right: string) => {
+  const leftTerms = sumTerms(left);
+  const rightTerms = sumTerms(right);
+  return leftTerms.length === rightTerms.length && leftTerms.every(term => rightTerms.includes(term));
+};
+
+export const buildSimplificationSteps = (
+  ast: Ast,
+  minterms: number[],
+  numVars: number,
+  varNames: string[],
+  table: TruthTableRow[],
+  qmResult: QmResult,
+): SimplificationStep[] => {
+  const original = formatAst(ast);
+  const canonical = formatImplicants(
+    minterms.map(minterm => new Implicant(minterm, 0, [minterm])),
+    varNames,
+  );
+  const finalExpression = formatSOP(qmResult, varNames);
+  const { rounds, primes } = buildQmTraceRounds(minterms, numVars, varNames);
+  const steps: SimplificationStep[] = [];
+
+  const appendStep = (before: string, after: string, law: string, explanation: string) => {
+    const equivalent = expressionMatchesTable(before, table) && expressionMatchesTable(after, table);
+    if (!equivalent) {
+      throw new Error('No se pudo verificar una transformación de simplificación.');
+    }
+    if (before === after) return;
+    steps.push({
+      index: steps.length + 1,
+      before,
+      after,
+      law,
+      explanation,
+      equivalent,
+      changed: true,
+    });
+  };
+
+  let current = original;
+  if (current !== canonical) {
+    appendStep(
+      current,
+      canonical,
+      'Forma canónica por minterms',
+      `Se expande la función usando la tabla de verdad: cada minterm representa una fila cuya salida es 1 (${minterms.length} minterm${minterms.length === 1 ? '' : 's'}).`,
+    );
+    current = canonical;
+  }
+
+  for (const round of rounds) {
+    const next = formatImplicants(round.implicants, varNames);
+    const sample = round.combinations[0];
+    appendStep(
+      current,
+      next,
+      'Reducción (combinación de términos)',
+      `Se combinaron ${round.combinations.length} par${round.combinations.length === 1 ? '' : 'es'} de términos que difieren en un literal mediante X·Y + X·Y' = X${sample ? `; por ejemplo, ${sample.left} + ${sample.right} = ${sample.result}` : ''}.`,
+    );
+    current = next;
+  }
+
+  const primeExpression = formatImplicants(primes, varNames);
+  if (current !== primeExpression) {
+    appendStep(
+      current,
+      primeExpression,
+      'Idempotencia',
+      'Se eliminan duplicados de implicantes sin cambiar la función: X + X = X.',
+    );
+    current = primeExpression;
+  }
+
+  if (current !== finalExpression) {
+    appendStep(
+      current,
+      finalExpression,
+      sameTerms(current, finalExpression) ? 'Conmutativa' : 'Absorción y cobertura',
+      sameTerms(current, finalExpression)
+        ? 'Se reordenan los términos de la suma para presentar la forma SOP final.'
+        : 'Se eliminan implicantes redundantes y se conserva una cobertura equivalente de todos los minterms activos.',
+    );
+    current = finalExpression;
+  }
+
+  if (steps.length === 0) {
+    steps.push({
+      index: 1,
+      before: original,
+      after: finalExpression,
+      law: 'Identidad',
+      explanation: 'La expresión ya está simplificada; no se requieren transformaciones adicionales.',
+      equivalent: expressionMatchesTable(original, table) && expressionMatchesTable(finalExpression, table),
+      changed: false,
+    });
+  }
+
+  return steps;
+};
+
 export const formatPOS = (qmSopOfComplement: QmResult, varNames: string[]) => {
     // Al pasarle los maxterms a Q-M, nos devuelve la SOP mínima de F'.
     // Aplicamos el Teorema de De Morgan de forma algorítmica: F = (F')'
@@ -483,6 +722,8 @@ export function calculateExpression(input: string) {
       let norOnly = "";
       let isExact = false;
       let isValidated = false;
+      let steps: SimplificationStep[] = [];
+      let stepsValidated = false;
 
       if (!isTooBig) {
         let qmSOP = quineMcCluskey(minterms, numVars);
@@ -508,8 +749,14 @@ export function calculateExpression(input: string) {
                  }
             }
             isValidated = testPassed;
+
+            steps = buildSimplificationSteps(ast, minterms, numVars, varNames, table, qmSOP);
+            stepsValidated = steps.every(step => step.equivalent);
+            isValidated = isValidated && stepsValidated;
         } catch (e) {
             isValidated = false;
+            steps = [];
+            stepsValidated = false;
         }
       } else {
         sopStr = "La expresión tiene demasiadas variables (>12) para simplificación exacta en el navegador.";
@@ -536,7 +783,9 @@ export function calculateExpression(input: string) {
         nandOnly,
         norOnly,
         isExact,
-        isValidated
+        isValidated,
+        steps,
+        stepsValidated,
       };
 }
 export type CalculationResult = ReturnType<typeof calculateExpression>;

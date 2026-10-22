@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { Copy, Check, AlertTriangle, BookOpen, Calculator, Play, Info } from 'lucide-react';
+import { Copy, Check, AlertTriangle, BookOpen, Calculator, Play, Info, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { calculateExpression, annotateAstWithValues, generateAsciiTree, generateDotGraph } from './logic/boolean';
 import type { Ast, Bit, CalculationResult } from './logic/boolean';
 
@@ -630,7 +630,58 @@ export default function App() {
                       </div>
                     )}
 
-                    <p className="text-sm text-slate-600">La cobertura final usa una selección voraz; no garantiza el mínimo global. El procedimiento paso a paso y sus explicaciones todavía están pendientes.</p>
+                    <div className="rounded-xl border border-indigo-100 bg-indigo-50/60 p-5" aria-labelledby="procedure-title">
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <h3 id="procedure-title" className="text-lg font-semibold text-slate-800">Procedimiento paso a paso</h3>
+                          <p className="mt-1 text-sm text-slate-600">El procedimiento paso a paso documenta cada transformación aplicada y la ley booleana que la justifica.</p>
+                        </div>
+                        {results.stepsValidated && (
+                          <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+                            <CheckCircle2 className="h-4 w-4" /> Equivalencia verificada
+                          </span>
+                        )}
+                      </div>
+
+                      {results.isExact ? (
+                        <ol className="mt-5 space-y-4">
+                          {results.steps.map(step => (
+                            <li key={step.index} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="rounded-full bg-indigo-100 px-2.5 py-1 text-xs font-bold text-indigo-700">Paso {step.index}</span>
+                                <span className="text-sm font-semibold text-slate-800">Ley: {step.law}</span>
+                                {step.changed ? (
+                                  <span className="text-xs text-slate-600">Transformación aplicada</span>
+                                ) : (
+                                  <span className="text-xs text-slate-600">Sin cambios necesarios</span>
+                                )}
+                              </div>
+
+                              <div className="mt-3 grid gap-3 md:grid-cols-[1fr_auto_1fr] md:items-center">
+                                <div>
+                                  <span className="text-[11px] font-bold uppercase tracking-wide text-slate-600">Antes</span>
+                                  <code className="mt-1 block break-words rounded border border-slate-200 bg-slate-50 p-2 font-mono text-sm text-slate-800">{step.before}</code>
+                                </div>
+                                <ArrowRight className="hidden h-5 w-5 text-indigo-500 md:block" aria-hidden="true" />
+                                <div>
+                                  <span className="text-[11px] font-bold uppercase tracking-wide text-slate-600">Después</span>
+                                  <code className="mt-1 block break-words rounded border border-indigo-200 bg-indigo-50 p-2 font-mono text-sm text-indigo-800">{step.after}</code>
+                                </div>
+                              </div>
+
+                              <p className="mt-3 text-sm leading-6 text-slate-700"><strong>Explicación:</strong> {step.explanation}</p>
+                              <p className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-emerald-700">
+                                <Check className="h-4 w-4" /> La equivalencia con la función original fue comprobada en toda la tabla de verdad.
+                              </p>
+                            </li>
+                          ))}
+                        </ol>
+                      ) : (
+                        <p className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">No hay procedimiento disponible porque la simplificación exacta está limitada a 12 variables.</p>
+                      )}
+                    </div>
+
+                    <p className="text-sm text-slate-600">La cobertura final usa una selección voraz; no garantiza el mínimo global. Sí conserva la equivalencia lógica y muestra las transformaciones que realmente se aplicaron.</p>
                     {results.isValidated && (
                        <div className="flex items-center text-sm text-emerald-700 bg-emerald-50 p-3 rounded-lg border border-emerald-200">
                          <Check className="w-5 h-5 mr-2" />
