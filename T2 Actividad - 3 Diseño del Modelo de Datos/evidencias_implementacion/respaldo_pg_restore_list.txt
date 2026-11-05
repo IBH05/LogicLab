@@ -1,0 +1,38 @@
+;
+; Archive created at 2026-11-03 22:32:04
+;     dbname: logiclab_db
+;     TOC Entries: 27
+;     Compression: gzip
+;     Dump Version: 1.16-0
+;     Format: CUSTOM
+;     Integer: 4 bytes
+;     Offset: 8 bytes
+;     Dumped from database version: 17.7
+;     Dumped by pg_dump version: 17.7
+;
+;
+; Selected TOC Entries:
+;
+218; 1259 16401 TABLE public ejercicios postgres
+220; 1259 16432 TABLE public historial postgres
+219; 1259 16412 TABLE public intentos postgres
+221; 1259 16447 TABLE public progreso postgres
+217; 1259 16389 TABLE public usuarios postgres
+4939; 0 16401 TABLE DATA public ejercicios postgres
+4941; 0 16432 TABLE DATA public historial postgres
+4940; 0 16412 TABLE DATA public intentos postgres
+4942; 0 16447 TABLE DATA public progreso postgres
+4938; 0 16389 TABLE DATA public usuarios postgres
+4779; 2606 16411 CONSTRAINT public ejercicios ejercicios_pkey postgres
+4785; 2606 16441 CONSTRAINT public historial historial_pkey postgres
+4783; 2606 16421 CONSTRAINT public intentos intentos_pkey postgres
+4788; 2606 16455 CONSTRAINT public progreso progreso_pkey postgres
+4775; 2606 16400 CONSTRAINT public usuarios usuarios_correo_key postgres
+4777; 2606 16398 CONSTRAINT public usuarios usuarios_pkey postgres
+4786; 1259 16463 INDEX public idx_historial_usuario_fecha postgres
+4780; 1259 16462 INDEX public idx_intentos_ejercicio postgres
+4781; 1259 16461 INDEX public idx_intentos_usuario_fecha postgres
+4791; 2606 16442 FK CONSTRAINT public historial historial_id_usuario_fkey postgres
+4789; 2606 16427 FK CONSTRAINT public intentos intentos_id_ejercicio_fkey postgres
+4790; 2606 16422 FK CONSTRAINT public intentos intentos_id_usuario_fkey postgres
+4792; 2606 16456 FK CONSTRAINT public progreso progreso_id_usuario_fkey postgres

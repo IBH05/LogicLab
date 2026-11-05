@@ -1,0 +1,29 @@
++---------------+--------------+------------------+
+| database_name | current_user | inet_server_port |
++---------------+--------------+------------------+
+| logiclab_db   | postgres     |             5432 |
++---------------+--------------+------------------+
+(1 row)
+
++------------+
+| table_name |
++------------+
+| ejercicios |
+| historial  |
+| intentos   |
+| progreso   |
+| usuarios   |
++------------+
+(5 rows)
+
++------------+-----------+
+| table_name | registros |
++------------+-----------+
+| ejercicios |         3 |
+| historial  |         5 |
+| intentos   |         3 |
+| progreso   |         2 |
+| usuarios   |         2 |
++------------+-----------+
+(5 rows)
+

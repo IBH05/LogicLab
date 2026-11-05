@@ -1,0 +1,36 @@
++------------+------------------+---------------------+--------------------------+-------------+--------------------------+-------------+-------------------+
+| table_name | ordinal_position |     column_name     |        data_type         |  udt_name   | character_maximum_length | is_nullable |  column_default   |
++------------+------------------+---------------------+--------------------------+-------------+--------------------------+-------------+-------------------+
+| ejercicios |                1 | id_ejercicio        | uuid                     | uuid        |                   [NULL] | NO          | gen_random_uuid() |
+| ejercicios |                2 | titulo              | character varying        | varchar     |                      160 | NO          | [NULL]            |
+| ejercicios |                3 | enunciado           | text                     | text        |                   [NULL] | NO          | [NULL]            |
+| ejercicios |                4 | expresion_objetivo  | text                     | text        |                   [NULL] | NO          | [NULL]            |
+| ejercicios |                5 | respuesta_esperada  | text                     | text        |                   [NULL] | NO          | [NULL]            |
+| ejercicios |                6 | dificultad          | character varying        | varchar     |                       12 | NO          | [NULL]            |
+| ejercicios |                7 | activo              | boolean                  | bool        |                   [NULL] | NO          | true              |
+| ejercicios |                8 | creado_en           | timestamp with time zone | timestamptz |                   [NULL] | NO          | now()             |
+| historial  |                1 | id_historial        | uuid                     | uuid        |                   [NULL] | NO          | gen_random_uuid() |
+| historial  |                2 | id_usuario          | uuid                     | uuid        |                   [NULL] | NO          | [NULL]            |
+| historial  |                3 | expresion_entrada   | text                     | text        |                   [NULL] | NO          | [NULL]            |
+| historial  |                4 | expresion_resultado | text                     | text        |                   [NULL] | NO          | [NULL]            |
+| historial  |                5 | operacion           | character varying        | varchar     |                       24 | NO          | [NULL]            |
+| historial  |                6 | registrado_en       | timestamp with time zone | timestamptz |                   [NULL] | NO          | now()             |
+| intentos   |                1 | id_intento          | uuid                     | uuid        |                   [NULL] | NO          | gen_random_uuid() |
+| intentos   |                2 | id_usuario          | uuid                     | uuid        |                   [NULL] | NO          | [NULL]            |
+| intentos   |                3 | id_ejercicio        | uuid                     | uuid        |                   [NULL] | NO          | [NULL]            |
+| intentos   |                4 | respuesta_usuario   | text                     | text        |                   [NULL] | NO          | [NULL]            |
+| intentos   |                5 | es_correcto         | boolean                  | bool        |                   [NULL] | NO          | [NULL]            |
+| intentos   |                6 | duracion_ms         | integer                  | int4        |                   [NULL] | YES         | [NULL]            |
+| intentos   |                7 | realizado_en        | timestamp with time zone | timestamptz |                   [NULL] | NO          | now()             |
+| progreso   |                1 | id_usuario          | uuid                     | uuid        |                   [NULL] | NO          | [NULL]            |
+| progreso   |                2 | intentos_total      | integer                  | int4        |                   [NULL] | NO          | 0                 |
+| progreso   |                3 | intentos_correctos  | integer                  | int4        |                   [NULL] | NO          | 0                 |
+| progreso   |                4 | actualizado_en      | timestamp with time zone | timestamptz |                   [NULL] | NO          | now()             |
+| usuarios   |                1 | id_usuario          | uuid                     | uuid        |                   [NULL] | NO          | gen_random_uuid() |
+| usuarios   |                2 | nombre              | character varying        | varchar     |                      120 | NO          | [NULL]            |
+| usuarios   |                3 | correo              | character varying        | varchar     |                      254 | NO          | [NULL]            |
+| usuarios   |                4 | password_hash       | text                     | text        |                   [NULL] | NO          | [NULL]            |
+| usuarios   |                5 | creado_en           | timestamp with time zone | timestamptz |                   [NULL] | NO          | now()             |
++------------+------------------+---------------------+--------------------------+-------------+--------------------------+-------------+-------------------+
+(30 rows)
+

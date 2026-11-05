@@ -1,0 +1,12 @@
+
+Name               Status StartType
+----               ------ ---------
+postgresql-x64-17 Running Automatic
+
+
+psql (PostgreSQL) 17.7
+
+pg_dump (PostgreSQL) 17.7
+
+pg_restore (PostgreSQL) 17.7
+

@@ -1,0 +1,15 @@
++------------+------------+-----------------------------+-----------------------------------------------------------------------------------------------------------+
+| schemaname | tablename  |          indexname          |                                                 indexdef                                                  |
++------------+------------+-----------------------------+-----------------------------------------------------------------------------------------------------------+
+| public     | ejercicios | ejercicios_pkey             | CREATE UNIQUE INDEX ejercicios_pkey ON public.ejercicios USING btree (id_ejercicio)                       |
+| public     | historial  | historial_pkey              | CREATE UNIQUE INDEX historial_pkey ON public.historial USING btree (id_historial)                         |
+| public     | historial  | idx_historial_usuario_fecha | CREATE INDEX idx_historial_usuario_fecha ON public.historial USING btree (id_usuario, registrado_en DESC) |
+| public     | intentos   | idx_intentos_ejercicio      | CREATE INDEX idx_intentos_ejercicio ON public.intentos USING btree (id_ejercicio)                         |
+| public     | intentos   | idx_intentos_usuario_fecha  | CREATE INDEX idx_intentos_usuario_fecha ON public.intentos USING btree (id_usuario, realizado_en DESC)    |
+| public     | intentos   | intentos_pkey               | CREATE UNIQUE INDEX intentos_pkey ON public.intentos USING btree (id_intento)                             |
+| public     | progreso   | progreso_pkey               | CREATE UNIQUE INDEX progreso_pkey ON public.progreso USING btree (id_usuario)                             |
+| public     | usuarios   | usuarios_correo_key         | CREATE UNIQUE INDEX usuarios_correo_key ON public.usuarios USING btree (correo)                           |
+| public     | usuarios   | usuarios_pkey               | CREATE UNIQUE INDEX usuarios_pkey ON public.usuarios USING btree (id_usuario)                             |
++------------+------------+-----------------------------+-----------------------------------------------------------------------------------------------------------+
+(9 rows)
+

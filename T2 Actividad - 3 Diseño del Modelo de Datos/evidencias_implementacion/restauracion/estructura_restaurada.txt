@@ -1,0 +1,57 @@
++--------+
+| tablas |
++--------+
+|      5 |
++--------+
+(1 row)
+
++-------------+
+| constraints |
++-------------+
+|          15 |
++-------------+
+(1 row)
+
++---------+
+| indices |
++---------+
+|       9 |
++---------+
+(1 row)
+
++------------+---------------------+--------------------------+-------------+-------------------+
+| table_name |     column_name     |        data_type         | is_nullable |  column_default   |
++------------+---------------------+--------------------------+-------------+-------------------+
+| ejercicios | id_ejercicio        | uuid                     | NO          | gen_random_uuid() |
+| ejercicios | titulo              | character varying        | NO          | [NULL]            |
+| ejercicios | enunciado           | text                     | NO          | [NULL]            |
+| ejercicios | expresion_objetivo  | text                     | NO          | [NULL]            |
+| ejercicios | respuesta_esperada  | text                     | NO          | [NULL]            |
+| ejercicios | dificultad          | character varying        | NO          | [NULL]            |
+| ejercicios | activo              | boolean                  | NO          | true              |
+| ejercicios | creado_en           | timestamp with time zone | NO          | now()             |
+| historial  | id_historial        | uuid                     | NO          | gen_random_uuid() |
+| historial  | id_usuario          | uuid                     | NO          | [NULL]            |
+| historial  | expresion_entrada   | text                     | NO          | [NULL]            |
+| historial  | expresion_resultado | text                     | NO          | [NULL]            |
+| historial  | operacion           | character varying        | NO          | [NULL]            |
+| historial  | registrado_en       | timestamp with time zone | NO          | now()             |
+| intentos   | id_intento          | uuid                     | NO          | gen_random_uuid() |
+| intentos   | id_usuario          | uuid                     | NO          | [NULL]            |
+| intentos   | id_ejercicio        | uuid                     | NO          | [NULL]            |
+| intentos   | respuesta_usuario   | text                     | NO          | [NULL]            |
+| intentos   | es_correcto         | boolean                  | NO          | [NULL]            |
+| intentos   | duracion_ms         | integer                  | YES         | [NULL]            |
+| intentos   | realizado_en        | timestamp with time zone | NO          | now()             |
+| progreso   | id_usuario          | uuid                     | NO          | [NULL]            |
+| progreso   | intentos_total      | integer                  | NO          | 0                 |
+| progreso   | intentos_correctos  | integer                  | NO          | 0                 |
+| progreso   | actualizado_en      | timestamp with time zone | NO          | now()             |
+| usuarios   | id_usuario          | uuid                     | NO          | gen_random_uuid() |
+| usuarios   | nombre              | character varying        | NO          | [NULL]            |
+| usuarios   | correo              | character varying        | NO          | [NULL]            |
+| usuarios   | password_hash       | text                     | NO          | [NULL]            |
+| usuarios   | creado_en           | timestamp with time zone | NO          | now()             |
++------------+---------------------+--------------------------+-------------+-------------------+
+(30 rows)
+

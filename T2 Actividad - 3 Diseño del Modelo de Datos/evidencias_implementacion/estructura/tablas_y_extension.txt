@@ -1,0 +1,24 @@
++--------------+------------+------------+
+| table_schema | table_name | table_type |
++--------------+------------+------------+
+| public       | ejercicios | BASE TABLE |
+| public       | historial  | BASE TABLE |
+| public       | intentos   | BASE TABLE |
+| public       | progreso   | BASE TABLE |
+| public       | usuarios   | BASE TABLE |
++--------------+------------+------------+
+(5 rows)
+
++---------+------------+
+| extname | extversion |
++---------+------------+
++---------+------------+
+(0 rows)
+
++-----------------+-----------------+-----------+
+| function_schema |     proname     | arguments |
++-----------------+-----------------+-----------+
+| pg_catalog      | gen_random_uuid |           |
++-----------------+-----------------+-----------+
+(1 row)
+

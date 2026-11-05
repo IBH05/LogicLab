@@ -1,0 +1,29 @@
+INFORME REAL DE RESTAURACION
+
+Base temporal: logiclab_restore_test
+Base origen: logiclab_db
+Archivo utilizado: respaldo/LogicLab_Backup.backup
+
+Comando ejecutado, sin credenciales incrustadas:
+"C:\Program Files\PostgreSQL\17\bin\pg_restore.exe" -h 127.0.0.1 -p 5432 -U postgres -d logiclab_restore_test -w --exit-on-error --verbose "C:\Users\PC\Desktop\LogicLab\T2 Actividad - 3 Diseño del Modelo de Datos\respaldo\LogicLab_Backup.backup"
+
+Resultado final de pg_restore: codigo de salida 0.
+
+Verificaciones realizadas en la base restaurada:
+- Cinco tablas publicas.
+- 30 columnas.
+- 15 restricciones.
+- Nueve indices totales, incluidos PK, UNIQUE e indices secundarios.
+- Cuatro relaciones FK con las reglas ON DELETE del esquema.
+- Conteos coincidentes con logiclab_db: ejercicios 3, historial 5, intentos 3, progreso 2, usuarios 2.
+- Los datos ficticios y la consistencia de progreso coinciden con la base origen.
+
+La base temporal se conserva y no se elimina, conforme a la instruccion de solicitar autorizacion antes de borrarla.
+
+Evidencia asociada:
+- restauracion/pg_restore.log
+- restauracion/conteos_logiclab_db.txt
+- restauracion/conteos_logiclab_restore_test.txt
+- restauracion/estructura_restaurada.txt
+- restauracion/restricciones_restauradas.txt
+- restauracion/indices_restaurados.txt

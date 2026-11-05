@@ -1,0 +1,26 @@
+INFORME REAL DEL RESPALDO LOGICLAB
+
+Base de datos origen: logiclab_db
+Servidor: 127.0.0.1:5432
+Usuario utilizado: postgres
+Version del servidor y herramientas: PostgreSQL 17.7
+Formato: PostgreSQL Custom Format (-Fc)
+Archivo: respaldo/LogicLab_Backup.backup
+Tamano verificado: 11094 bytes
+
+Comando ejecutado, sin credenciales incrustadas:
+"C:\Program Files\PostgreSQL\17\bin\pg_dump.exe" -h 127.0.0.1 -p 5432 -U postgres -d logiclab_db -Fc -f "C:\Users\PC\Desktop\LogicLab\T2 Actividad - 3 Diseño del Modelo de Datos\respaldo\LogicLab_Backup.backup" -v
+
+Resultado de pg_dump: codigo de salida 0.
+
+Comando de verificacion:
+"C:\Program Files\PostgreSQL\17\bin\pg_restore.exe" --list "C:\Users\PC\Desktop\LogicLab\T2 Actividad - 3 Diseño del Modelo de Datos\respaldo\LogicLab_Backup.backup"
+
+Resultado de pg_restore --list: codigo de salida 0.
+TOC entries: 27.
+El listado incluye las cinco tablas, cinco bloques TABLE DATA, seis restricciones PRIMARY KEY/UNIQUE, cuatro FK y tres indices secundarios explicitos.
+
+Evidencia asociada:
+- evidencias_implementacion/respaldo_pg_restore_list.txt
+- evidencias_implementacion/estructura/indices.txt
+- evidencias_implementacion/pruebas/resultados_pruebas.log

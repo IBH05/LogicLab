@@ -1,0 +1,10 @@
++------------+------------------+----------------------------+-----------------------------------------------------------------------------------+
+| table_name | referenced_table |      constraint_name       |                                    definition                                     |
++------------+------------------+----------------------------+-----------------------------------------------------------------------------------+
+| historial  | usuarios         | historial_id_usuario_fkey  | FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE        |
+| intentos   | ejercicios       | intentos_id_ejercicio_fkey | FOREIGN KEY (id_ejercicio) REFERENCES ejercicios(id_ejercicio) ON DELETE RESTRICT |
+| intentos   | usuarios         | intentos_id_usuario_fkey   | FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE        |
+| progreso   | usuarios         | progreso_id_usuario_fkey   | FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE        |
++------------+------------------+----------------------------+-----------------------------------------------------------------------------------+
+(4 rows)
+
