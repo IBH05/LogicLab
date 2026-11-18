@@ -4,31 +4,34 @@ import App from './App';
 import { CircuitEditor } from './components/CircuitEditor';
 import { ExercisesView } from './components/ExercisesView';
 import { Home } from './components/Home';
+import { SiteFooter, SiteHeader, type NavItem } from './components/SiteChrome';
+import { PageContainer, PageHeader } from './components/ui';
 import { circuitFromExpressions, type Circuit } from './logic/circuit';
 
 type View = 'home' | 'calc' | 'editor' | 'exercises';
 const ROUTES: Record<string, View> = { '': 'home', '/': 'home', '/calculadora': 'calc', '/editor': 'editor', '/ejercicios': 'exercises' };
-const PATHS: Record<View, string> = { home: '#/', calc: '#/calculadora', editor: '#/editor', exercises: '#/ejercicios' };
-const fromHash = (): View => ROUTES[window.location.hash.replace(/^#/, '')] ?? 'home';
-const VIEWS: { id: View; label: string; icon: typeof Calculator }[] = [
-  { id: 'home', label: 'Inicio', icon: House },
-  { id: 'calc', label: 'Calculadora', icon: Calculator },
-  { id: 'editor', label: 'Editor de circuitos', icon: CircuitBoard },
-  { id: 'exercises', label: 'Ejercicios', icon: GraduationCap },
+const NAV: (NavItem & { id: View })[] = [
+  { id: 'home', label: 'Inicio', href: '#/', icon: House },
+  { id: 'calc', label: 'Calculadora', href: '#/calculadora', icon: Calculator },
+  { id: 'editor', label: 'Editor de circuitos', href: '#/editor', icon: CircuitBoard },
+  { id: 'exercises', label: 'Ejercicios', href: '#/ejercicios', icon: GraduationCap },
 ];
+const hrefOf = (v: View) => NAV.find(n => n.id === v)!.href;
+const fromHash = (): View => ROUTES[window.location.hash.replace(/^#/, '')] ?? 'home';
 
-/** Raíz de la aplicación: navegación entre calculadora, editor de circuitos y ejercicios. */
+/** Raíz de la aplicación: cabecera y pie globales y las cuatro vistas. */
 export default function Shell() {
   const [view, setView] = useState<View>(fromHash);
-  // Mantener montado el editor evita perder el circuito (y el historial) al cambiar de pestaña.
+  // Las vistas ya visitadas siguen montadas (ocultas): así el editor no pierde el circuito ni el historial.
   const [visited, setVisited] = useState<Set<View>>(() => new Set([fromHash()]));
   const [seed, setSeed] = useState<Circuit | undefined>(undefined);
   const [editorKey, setEditorKey] = useState(0);
 
-  const go = (v: View) => { window.location.hash = PATHS[v]; setView(v); setVisited(s => new Set(s).add(v)); window.scrollTo?.(0, 0); };
-  // Soporta enlaces directos y los botones atrás/adelante del navegador.
+  const show = (v: View) => { setView(v); setVisited(s => new Set(s).add(v)); window.scrollTo?.(0, 0); };
+  const go = (v: View) => { window.location.hash = hrefOf(v); show(v); };
+  // Enlaces directos y botones atrás/adelante del navegador.
   useEffect(() => {
-    const onHash = () => { const v = fromHash(); setView(v); setVisited(s => new Set(s).add(v)); window.scrollTo?.(0, 0); };
+    const onHash = () => show(fromHash());
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
@@ -42,45 +45,37 @@ export default function Shell() {
   };
 
   return (
-    <>
-      <nav aria-label="Secciones de LogicLab" className="bg-slate-900 text-white">
-        <div className="max-w-7xl mx-auto px-4 flex items-center gap-1 overflow-x-auto">
-          <span className="font-bold tracking-tight mr-4 py-2 whitespace-nowrap">LogicLab</span>
-          {VIEWS.map(({ id, label, icon: Icon }) => (
-            <button key={id} onClick={() => go(id)} aria-current={view === id ? 'page' : undefined}
-              className={`inline-flex items-center gap-1.5 px-3 py-2.5 text-sm font-medium whitespace-nowrap border-b-2 ${view === id ? 'border-indigo-400 text-white' : 'border-transparent text-slate-300 hover:text-white'}`}>
-              <Icon className="w-4 h-4" aria-hidden="true" />{label}
-            </button>
-          ))}
-        </div>
-      </nav>
+    <div className="min-h-screen flex flex-col bg-canvas text-ink-soft font-sans">
+      <SiteHeader items={NAV} current={view} onNavigate={id => go(id as View)} />
 
-      {visited.has('home') && <div hidden={view !== 'home'}><Home /></div>}
-      {visited.has('calc') && <div hidden={view !== 'calc'}><App onOpenInEditor={openInEditor} /></div>}
+      <div className="flex-1">
+        {visited.has('home') && <div hidden={view !== 'home'}><Home /></div>}
+        {visited.has('calc') && <div hidden={view !== 'calc'}><App onOpenInEditor={openInEditor} /></div>}
 
-      {visited.has('editor') && (
-        <div hidden={view !== 'editor'} className="min-h-screen bg-slate-50 font-sans text-slate-800">
-          <main className="max-w-[90rem] mx-auto px-4 py-6 space-y-4">
-            <div>
-              <h1 className="text-2xl font-bold">Editor de circuitos lógicos</h1>
-              <p className="text-slate-700 text-sm">Arrastra compuertas, conéctalas, enciende las entradas y observa la tabla de verdad, la expresión, los caminos y el costo en vivo.</p>
-            </div>
-            <CircuitEditor key={editorKey} initial={seed} />
-          </main>
-        </div>
-      )}
+        {visited.has('editor') && (
+          <div hidden={view !== 'editor'}>
+            <main>
+              <PageContainer wide className="py-6 space-y-4">
+                <PageHeader title="Editor de circuitos lógicos" description="Arrastra compuertas, conéctalas, enciende las entradas y observa la tabla de verdad, la expresión, los caminos y el costo en vivo." />
+                <CircuitEditor key={editorKey} initial={seed} />
+              </PageContainer>
+            </main>
+          </div>
+        )}
 
-      {visited.has('exercises') && (
-        <div hidden={view !== 'exercises'} className="min-h-screen bg-slate-50 font-sans text-slate-800">
-          <main className="max-w-7xl mx-auto px-4 py-6 space-y-4">
-            <div>
-              <h1 className="text-2xl font-bold">Ejercicios</h1>
-              <p className="text-slate-700 text-sm">Problemas de electrónica digital con verificación automática por equivalencia lógica.</p>
-            </div>
-            <ExercisesView />
-          </main>
-        </div>
-      )}
-    </>
+        {visited.has('exercises') && (
+          <div hidden={view !== 'exercises'}>
+            <main>
+              <PageContainer className="py-6 space-y-4">
+                <PageHeader title="Ejercicios" description="Problemas de electrónica digital con verificación automática por equivalencia lógica." />
+                <ExercisesView />
+              </PageContainer>
+            </main>
+          </div>
+        )}
+      </div>
+
+      <SiteFooter items={NAV} />
+    </div>
   );
 }

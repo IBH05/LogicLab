@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { Copy, Check, AlertTriangle, BookOpen, Calculator, Play, Info, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Copy, Check, AlertTriangle, BookOpen, Play, Info, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { calculateExpression, annotateAstWithValues, generateAsciiTree, generateDotGraph, quineMcCluskey } from './logic/boolean';
 import { KarnaughView } from './components/KarnaughView';
+import { PageHeader, buttonClass } from './components/ui';
 import type { Ast, Bit, CalculationResult } from './logic/boolean';
 
 // ==========================================
@@ -377,26 +378,25 @@ export default function App({ onOpenInEditor }: { onOpenInEditor?: (expression: 
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-800">
+    <div className="bg-canvas font-sans text-slate-800">
 
-      {/* HEADER */}
-      <header className="bg-indigo-600 text-white shadow-md">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Calculator className="w-6 h-6" />
-            <h1 className="text-xl font-bold tracking-tight">LogicLab · Calculadora Booleana</h1>
-          </div>
-          <button
-            aria-label="Leyes y Reglas"
-            aria-expanded={showRules}
-            onClick={() => setShowRules(!showRules)}
-            className="flex items-center space-x-1 text-sm bg-indigo-500 hover:bg-indigo-400 px-3 py-1.5 rounded-full transition"
-          >
-            <BookOpen className="w-4 h-4" />
-            <span className="hidden sm:inline">Leyes y Reglas</span>
-          </button>
-        </div>
-      </header>
+      <div className="max-w-7xl mx-auto px-4 pt-6">
+        <PageHeader
+          title="Calculadora booleana"
+          description="Escribe una expresión y obtén su tabla de verdad, simplificación, formas canónicas, NAND/NOR, mapa de Karnaugh y diagrama."
+          actions={
+            <button
+              aria-label="Leyes y Reglas"
+              aria-expanded={showRules}
+              onClick={() => setShowRules(!showRules)}
+              className={buttonClass('secondary')}
+            >
+              <BookOpen className="w-4 h-4" />
+              <span className="hidden sm:inline">Leyes y Reglas</span>
+            </button>
+          }
+        />
+      </div>
 
       <main className="max-w-7xl mx-auto px-4 py-6 flex flex-col md:flex-row gap-6 items-start">
 

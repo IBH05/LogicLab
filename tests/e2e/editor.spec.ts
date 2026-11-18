@@ -113,6 +113,8 @@ test('ejercicio de expresión: contraejemplo, acierto y progreso', async ({ page
 });
 
 test('ejercicio de circuito: medio sumador con compuertas arrastradas', async ({ page }) => {
+  // la paleta y el lienzo deben verse a la vez para poder arrastrar entre ellos
+  await page.setViewportSize({ width: 1280, height: 1100 });
   await page.getByRole('button', { name: 'Ejercicios', exact: true }).click();
   await page.getByRole('button', { name: /Medio sumador Básico/ }).click();
   await page.getByRole('button', { name: 'Comprobar circuito' }).click();
@@ -235,4 +237,35 @@ test('tutorial: accesibilidad', async ({ page }) => {
   await expect(page.getByRole('region', { name: 'Tutorial guiado' })).toBeVisible();
   const r = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
   expect(r.violations.map(v => `${v.id}: ${v.nodes[0]?.html}`)).toEqual([]);
+});
+
+test('fase 1: una sola cabecera global y un h1 por vista', async ({ page }) => {
+  const views: [string, RegExp][] = [
+    ['/#/', /Aprende lógica digital/], ['/#/calculadora', /Calculadora booleana/],
+    ['/#/editor', /Editor de circuitos lógicos/], ['/#/ejercicios', /^Ejercicios$/],
+  ];
+  for (const [url, title] of views) {
+    await page.goto(url);
+    await expect(page.getByRole('banner'), url).toHaveCount(1);
+    await expect(page.getByRole('navigation', { name: 'Secciones de LogicLab' }), url).toHaveCount(1);
+    await expect(page.getByRole('heading', { level: 1 }), url).toHaveCount(1);
+    await expect(page.getByRole('heading', { level: 1 }), url).toHaveText(title);
+    await expect(page.getByRole('contentinfo'), url).toHaveCount(1);
+    const r = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
+    expect(r.violations.map(v => `${v.id}: ${v.nodes[0]?.html}`), url).toEqual([]);
+  }
+});
+
+test('fase 1: tokens de diseño, marca y pie navegables', async ({ page }) => {
+  await page.goto('/#/calculadora');
+  const tokens = await page.evaluate(() => ['--color-brand-600', '--color-signal-on', '--radius-card'].map(t => getComputedStyle(document.documentElement).getPropertyValue(t).trim()));
+  expect(tokens.every(Boolean)).toBe(true);
+  // el botón de reglas ahora vive en el encabezado de la calculadora
+  await page.getByRole('button', { name: 'Leyes y Reglas', exact: true }).click();
+  await expect(page.getByText('Chuleta de Álgebra')).toBeVisible();
+  // la marca lleva al inicio y el pie enlaza a las secciones
+  await page.getByRole('link', { name: 'LogicLab, ir al inicio' }).click();
+  await expect(page).toHaveURL(/#\/$/);
+  await page.getByRole('contentinfo').getByRole('link', { name: 'Editor de circuitos' }).click();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Editor de circuitos lógicos');
 });

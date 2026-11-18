@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { BookOpenCheck, Calculator, CircuitBoard, GraduationCap, Grid3x3, Share2 } from 'lucide-react';
 import { EXERCISES } from '../logic/exercises';
+import { Card, CardLink, LinkButton, Section } from './ui';
 
 type DemoGate = 'AND' | 'OR' | 'XOR' | 'NAND';
 const apply = (g: DemoGate, a: 0 | 1, b: 0 | 1): 0 | 1 =>
@@ -68,54 +69,54 @@ const STEPS = [
 
 export function Home() {
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans">
-      <header className="bg-gradient-to-br from-indigo-700 via-indigo-600 to-violet-700 text-white">
+    <div className="text-ink-soft font-sans">
+      <section aria-label="Presentación" className="bg-gradient-to-br from-brand-800 via-brand-600 to-violet-700 text-white">
         <div className="max-w-6xl mx-auto px-4 py-12 md:py-16 grid md:grid-cols-2 gap-10 items-center">
           <div>
             <p className="inline-flex items-center gap-2 text-sm bg-white/15 rounded-full px-3 py-1 mb-4"><BookOpenCheck className="w-4 h-4" aria-hidden="true" />Álgebra booleana interactiva</p>
             <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight leading-tight">Aprende lógica digital construyendo circuitos</h1>
             <p className="mt-4 text-lg text-indigo-50">Expresiones, tablas de verdad, simplificación y compuertas en un solo lugar. Todo corre en tu navegador, sin cuentas ni instalación.</p>
             <div className="mt-6 flex flex-wrap gap-3">
-              <a href="#/editor" className="px-5 py-3 rounded-lg bg-white text-indigo-800 font-semibold hover:bg-indigo-50">Abrir el editor</a>
-              <a href="#/calculadora" className="px-5 py-3 rounded-lg border-2 border-white/80 font-semibold hover:bg-white/10">Usar la calculadora</a>
+              <LinkButton href="#/editor" variant="inverse" size="lg">Abrir el editor</LinkButton>
+              <LinkButton href="#/calculadora" variant="outline-inverse" size="lg">Usar la calculadora</LinkButton>
             </div>
           </div>
           <div className="flex justify-center md:justify-end"><Demo /></div>
         </div>
-      </header>
+      </section>
 
       <main className="max-w-6xl mx-auto px-4 py-12 space-y-14">
-        <section aria-labelledby="h-herr">
-          <h2 id="h-herr" className="text-2xl font-bold mb-5">Herramientas</h2>
+        <Section id="h-herr" title="Herramientas">
           <ul className="grid md:grid-cols-3 gap-4 list-none p-0">
             {CARDS.map(({ href, icon: Icon, title, text }) => (
               <li key={href}>
-                <a href={href} className="block h-full bg-white border border-slate-200 rounded-xl p-5 hover:border-indigo-400 hover:shadow-md transition">
-                  <Icon className="w-8 h-8 text-indigo-600 mb-3" aria-hidden="true" />
-                  <h3 className="font-semibold text-lg">{title}</h3>
-                  <p className="text-slate-700 mt-1 text-sm">{text}</p>
-                  <span className="inline-block mt-3 text-indigo-700 font-medium text-sm">Abrir →</span>
-                </a>
+                <CardLink href={href}>
+                  <Icon className="w-8 h-8 text-brand-600 mb-3" aria-hidden="true" />
+                  <h3 className="font-semibold text-lg text-ink">{title}</h3>
+                  <p className="text-ink-soft mt-1 text-sm">{text}</p>
+                  <span className="inline-block mt-3 text-brand-700 font-medium text-sm">Abrir →</span>
+                </CardLink>
               </li>
             ))}
           </ul>
-        </section>
+        </Section>
 
-        <section aria-labelledby="h-ruta">
-          <h2 id="h-ruta" className="text-2xl font-bold mb-5">Cómo aprender con LogicLab</h2>
+        <Section id="h-ruta" title="Cómo aprender con LogicLab">
           <ol className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 list-none p-0">
             {STEPS.map(s => (
-              <li key={s.n} className="bg-white border border-slate-200 rounded-xl p-5">
-                <span className="inline-flex w-8 h-8 rounded-full bg-indigo-600 text-white font-bold items-center justify-center mb-2" aria-hidden="true">{s.n}</span>
-                <h3 className="font-semibold">{s.title}</h3>
-                <p className="text-sm text-slate-700 mt-1">{s.text}</p>
+              <li key={s.n}>
+                <Card className="h-full">
+                  <span className="inline-flex w-8 h-8 rounded-full bg-brand-600 text-white font-bold items-center justify-center mb-2" aria-hidden="true">{s.n}</span>
+                  <h3 className="font-semibold text-ink">{s.title}</h3>
+                  <p className="text-sm text-ink-soft mt-1">{s.text}</p>
+                </Card>
               </li>
             ))}
           </ol>
-        </section>
+        </Section>
 
         <section aria-labelledby="h-inc" className="grid md:grid-cols-2 gap-6">
-          <div className="bg-white border border-slate-200 rounded-xl p-5">
+          <Card>
             <h2 id="h-inc" className="text-xl font-bold mb-3 flex items-center gap-2"><Grid3x3 className="w-5 h-5 text-indigo-600" aria-hidden="true" />Qué incluye</h2>
             <ul className="text-sm text-slate-800 space-y-1 list-disc pl-5">
               <li>Operadores AND, OR, XOR y NOT, con teclado virtual</li>
@@ -125,16 +126,15 @@ export function Home() {
               <li>Caminos, retardo y costo en chips 74xx</li>
               <li>Exportar circuitos a SVG, PNG y JSON</li>
             </ul>
-          </div>
-          <div className="bg-white border border-slate-200 rounded-xl p-5">
+          </Card>
+          <Card>
             <h2 className="text-xl font-bold mb-3 flex items-center gap-2"><Share2 className="w-5 h-5 text-indigo-600" aria-hidden="true" />Para quién es</h2>
             <p className="text-sm text-slate-800">Estudiantes de sistemas digitales, electrónica, arquitectura de computadoras, programación y matemáticas discretas, y docentes que quieren una herramienta visual para clase.</p>
-            <p className="text-xs text-slate-600 mt-3">Tu progreso en los ejercicios se guarda solo en este navegador.</p>
-          </div>
+            <p className="text-xs text-muted mt-3">Tu progreso en los ejercicios se guarda solo en este navegador.</p>
+          </Card>
         </section>
       </main>
 
-      <footer className="border-t border-slate-200 py-6 text-center text-sm text-slate-600">LogicLab · Proyecto académico del Equipo 3</footer>
     </div>
   );
 }
