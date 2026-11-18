@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { Copy, Check, AlertTriangle, BookOpen, Calculator, Play, Info, ArrowRight, CheckCircle2 } from 'lucide-react';
-import { calculateExpression, annotateAstWithValues, generateAsciiTree, generateDotGraph } from './logic/boolean';
+import { calculateExpression, annotateAstWithValues, generateAsciiTree, generateDotGraph, quineMcCluskey } from './logic/boolean';
+import { KarnaughView } from './components/KarnaughView';
 import type { Ast, Bit, CalculationResult } from './logic/boolean';
 
 // ==========================================
@@ -262,7 +263,7 @@ const CopyButton = ({ text }: { text: string }) => {
 };
 
 // COMPONENTE PRINCIPAL APP
-export default function App() {
+export default function App({ onOpenInEditor }: { onOpenInEditor?: (expression: string) => void } = {}) {
   const [input, setInput] = useState('');
   const [results, setResults] = useState<CalculationResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -366,9 +367,14 @@ export default function App() {
     { id: 'truth', label: 'Tabla de Verdad' },
     { id: 'simp', label: 'Simplificación' },
     { id: 'canon', label: 'Formas Canónicas' },
+    { id: 'karnaugh', label: 'Mapa de Karnaugh' },
     { id: 'gates', label: 'NAND / NOR' },
     { id: 'diagram', label: 'Diagrama Lógico' }
   ];
+  const karnaughQm = useMemo(
+    () => (results && !results.isTooBig ? quineMcCluskey(results.minterms, results.variables.length) : undefined),
+    [results],
+  );
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-800">
@@ -544,6 +550,14 @@ export default function App() {
                     {tab.label}
                   </button>
                 ))}
+                {onOpenInEditor && (
+                  <button
+                    onClick={() => onOpenInEditor(input)}
+                    className="ml-auto whitespace-nowrap my-1.5 mr-3 px-3 py-1.5 text-sm font-medium rounded-lg bg-indigo-600 text-white hover:bg-indigo-700"
+                  >
+                    Abrir en el editor de circuitos
+                  </button>
+                )}
               </div>
 
               {/* TABS CONTENT */}
@@ -724,6 +738,13 @@ export default function App() {
                       mono
                     />
                   </div>
+                )}
+
+                {/* VISTA: MAPA DE KARNAUGH */}
+                {activeTab === 'karnaugh' && (
+                  results.isTooBig
+                    ? <p className="text-sm text-slate-600">Hay demasiadas variables para el mapa.</p>
+                    : <KarnaughView vars={results.variables} minterms={results.minterms} qm={karnaughQm} />
                 )}
 
                 {/* VISTA: DIAGRAMA */}

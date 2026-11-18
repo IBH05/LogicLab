@@ -28,6 +28,14 @@ El público principal son estudiantes de nivel medio superior y superior en sist
 - Representaciones algebraicas NAND y NOR; cada grupo de múltiples operandos representa una compuerta de múltiples entradas.
 - Circuito SVG, árbol ASCII, código Graphviz DOT y evaluación de una fila en el circuito.
 - Referencia de leyes booleanas y copiado de resultados.
+- **Mapa de Karnaugh** de 1 a 5 variables (5 = dos mapas), con los grupos del resultado SOP resaltados.
+- **Editor de circuitos drag & drop** (pestaña «Editor de circuitos»): se arrastran entradas, salidas y compuertas NOT, AND, OR, NAND, NOR, XOR y XNOR (AND/OR/NAND/NOR de 2 a 4 entradas) y se conectan con cables. Las entradas son interruptores y las salidas LED; los cables se colorean según el valor de la señal.
+- **Análisis en vivo del circuito dibujado:** tabla de verdad (por simulación directa), expresión, SOP/POS/NAND/NOR, procedimiento de simplificación, Karnaugh, **caminos** entrada → salida con su retardo en niveles de compuertas, y **costo** (compuertas, entradas y circuitos integrados 74xx estimados).
+- **Transformaciones con deshacer:** simplificar el circuito, reconstruirlo solo con NAND o solo con NOR, y dibujar un circuito desde una expresión (varias salidas separadas por `;`). La calculadora puede abrir su expresión en el editor.
+- Deshacer/rehacer, zoom, acomodo automático, autoguardado en el navegador, y exportar/importar JSON, SVG y PNG.
+- **Ejercicios** (pestaña «Ejercicios»): 12 problemas de electrónica digital (escribir la expresión, simplificar, completar tablas de verdad y armar circuitos con restricciones como «solo NAND, máximo 5 compuertas»), más un generador aleatorio de 3 a 5 variables. La respuesta se verifica por **equivalencia lógica**, no por texto, y ante un error se muestra una fila concreta donde difiere. Incluye pistas progresivas y solución. El progreso se guarda solo en este navegador.
+
+Límites del editor y de los ejercicios: no hay realimentación (los ciclos se rechazan; solo circuitos combinacionales), no se detectan riesgos (*hazards*) y el retardo se mide en niveles de compuertas, no en tiempo. La estimación de chips no reparte compuertas sobrantes entre tipos distintos. Los símbolos son ANSI/IEEE; no hay símbolos IEC. Los ejercicios de simplificar comparan literales contra una solución obtenida con el mismo algoritmo voraz, por lo que una respuesta con menos literales también se acepta. El progreso vive en `localStorage`: no hay cuentas, ni sincronización, ni historial entre dispositivos. En pantallas táctiles el arrastre desde la paleta no está soportado por el navegador: se usa un toque para agregar la compuerta y se arrastra para moverla y cablearla (esa interacción táctil no se ha probado en dispositivos físicos).
 
 La cobertura voraz **no garantiza un mínimo global**. La referencia de leyes no explica cada paso de una resolución. La exportación DOT es texto; Graphviz no es una dependencia de la aplicación.
 
@@ -82,7 +90,13 @@ LogicLab/
 ├── public/               # Sin documentos académicos
 ├── scripts/audit-documents.py
 ├── src/
-│   ├── logic/boolean.ts
+│   ├── logic/
+│   │   ├── boolean.ts        # motor: parser, tabla, Quine-McCluskey, NAND/NOR
+│   │   ├── circuit.ts        # grafo de compuertas, simulación, caminos, costo, conversión
+│   │   ├── karnaugh.ts       # mapas de Karnaugh
+│   │   └── exercises.ts      # banco, verificación y generador de ejercicios
+│   ├── components/           # CircuitEditor, CircuitAnalysis, KarnaughView, ExercisesView
+│   ├── Shell.tsx             # navegación calculadora / editor / ejercicios
 │   ├── App.tsx
 │   ├── main.tsx
 │   └── styles.css
