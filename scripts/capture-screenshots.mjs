@@ -44,6 +44,7 @@ await shot('alarma-nand', canvas);
 
 // Ejercicio de circuito
 await page.goto(`${base}/#/ejercicios`);
+await page.getByRole('button', { name: /^NAND y NOR \d+\// }).click();
 await page.getByRole('button', { name: /Medio sumador solo con NAND/ }).click();
 await page.evaluate(() => window.scrollTo(0, 0));
 await shot('ejercicios', page, { clip: { x: 0, y: 48, width: 1280, height: 720 } });

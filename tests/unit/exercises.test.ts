@@ -22,11 +22,23 @@ describe('banco de ejercicios', () => {
     }
   });
 
-  it('cada ejercicio de circuito tiene una solución dibujable que él mismo aprueba', () => {
+  it('cada ejercicio de circuito tiene una solución dibujable que él mismo aprueba', async () => {
+    const { toUniversal } = await import('../../src/logic/circuit');
     for (const e of EXERCISES.filter(x => x.kind === 'circuit')) {
-      const c = circuitFromExpressions(e.outputs.map(o => `${o.name} = ${o.expr}`).join('; '), true);
-      if (e.allowedGates || e.maxGates) continue; // las restricciones requieren su propia construcción
-      expect(checkCircuit(c, e.outputs).ok, e.id).toBe(true);
+      const text = e.outputs.map(o => `${o.name} = ${o.expr}`).join('; ');
+      const universal = e.allowedGates?.length === 1 ? e.allowedGates[0] : null;
+      // con restricción de una sola familia, la solución de referencia es la conversión a NAND o NOR
+      const c = universal ? toUniversal(circuitFromExpressions(text), universal as 'NAND' | 'NOR') : circuitFromExpressions(text, !e.maxGates); // con tope de compuertas se conserva la forma dada (p. ej. XOR en cascada)
+      const r = checkCircuit(c, e.outputs, { allowed: e.allowedGates, maxGates: e.maxGates });
+      expect(r.messages, `${e.id}: ${r.messages.join(' ')}`).toEqual([]);
+      expect(r.ok, e.id).toBe(true);
+    }
+  });
+
+  it('las restricciones de los ejercicios no se pueden cumplir con otra familia de compuertas', () => {
+    for (const e of EXERCISES.filter(x => x.allowedGates)) {
+      const c = circuitFromExpressions(e.outputs.map(o => `${o.name} = ${o.expr}`).join('; '));
+      expect(checkCircuit(c, e.outputs, { allowed: e.allowedGates }).ok, e.id).toBe(false); // AND/OR/NOT no son NAND ni NOR
     }
   });
 
@@ -64,6 +76,13 @@ describe('verificación de respuestas', () => {
   it('literalCount y minimalLiterals', () => {
     expect(literalCount(parseExpression("A*B' + C"))).toBe(3);
     expect(minimalLiterals("A*B + A*B' + A'*B")).toBe(2);
+  });
+  it('la tabla sigue el orden de las variables del enunciado', () => {
+    const e = EXERCISES.find(x => x.id === 'tabla-riego')!; // S, L, T
+    const { vars, rows } = truthRows(e);
+    expect(vars).toEqual(['S', 'L', 'T']);
+    expect(rows[4].env).toMatchObject({ S: 1, L: 0, T: 0 }); // fila 100
+    expect(rows[4].expected).toBe(1); // R = T + S·L′
   });
   it('valida la tabla de verdad', () => {
     const e = EXERCISES.find(x => x.id === 'tabla-motor')!;

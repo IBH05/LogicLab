@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { CheckCircle2, Circle, Dices, Lightbulb } from 'lucide-react';
+import { CheckCircle2, ChevronDown, Circle, Dices, Lightbulb, PartyPopper } from 'lucide-react';
 import type { Bit } from '../logic/boolean';
 import { checkCircuit, circuitIssues, type Circuit, type CNode } from '../logic/circuit';
 import {
@@ -8,6 +8,8 @@ import {
 } from '../logic/exercises';
 import { CircuitEditor } from './CircuitEditor';
 import { KarnaughView } from './KarnaughView';
+import { PATH_ORDER, UNITS, nextAfter, nextRecommended, unitOf, unitProgress, unitStatus } from '../logic/path';
+import { Badge, Button } from './ui';
 
 const PROGRESS_KEY = 'logiclab.progress.v1';
 const loadProgress = (): string[] => { try { return JSON.parse(localStorage.getItem(PROGRESS_KEY) ?? '[]'); } catch { return []; } };
@@ -109,49 +111,106 @@ function CircuitExercise({ ex, onVerdict }: { ex: Exercise; onVerdict: (v: Verdi
   );
 }
 
+const STATUS_LABEL = { done: 'Completada', current: 'En curso', upcoming: 'Pendiente' } as const;
+
 export function ExercisesView() {
   const [custom, setCustom] = useState<Exercise[]>([]);
   const all = useMemo(() => [...EXERCISES, ...custom], [custom]);
-  const [currentId, setCurrentId] = useState(EXERCISES[0].id);
   const [solved, setSolved] = useState<string[]>(loadProgress);
-  const [filter, setFilter] = useState<'all' | 1 | 2 | 3>('all');
+  const [currentId, setCurrentId] = useState<string>(() => nextRecommended(loadProgress()) ?? EXERCISES[0].id);
+  const [open, setOpen] = useState<Set<string>>(() => new Set([unitOf(nextRecommended(loadProgress()) ?? '')?.id ?? UNITS[0].id]));
   const [hints, setHints] = useState(0);
   const [verdict, setVerdict] = useState<Verdict | null>(null);
   const [revealed, setRevealed] = useState(false);
   const [randVars, setRandVars] = useState(3);
 
   const ex = all.find(e => e.id === currentId) ?? all[0];
-  const list = all.filter(e => filter === 'all' || e.level === filter);
+  const exUnit = unitOf(ex.id);
+  const exIndex = exUnit ? UNITS.indexOf(exUnit) + 1 : 0;
 
-  const select = (id: string) => { setCurrentId(id); setHints(0); setVerdict(null); setRevealed(false); };
+  const select = (id: string) => {
+    setCurrentId(id); setHints(0); setVerdict(null); setRevealed(false);
+    const u = unitOf(id);
+    if (u) setOpen(o => new Set(o).add(u.id));
+  };
+  const toggleUnit = (id: string) => setOpen(o => { const n = new Set(o); if (n.has(id)) n.delete(id); else n.add(id); return n; });
   const onVerdict = (v: Verdict) => {
     setVerdict(v);
     if (v.status === 'ok' && !revealed && !solved.includes(ex.id)) { const next = [...solved, ex.id]; setSolved(next); saveProgress(next); }
   };
   const generate = () => { const e = generateRandomExercise(Date.now(), randVars); setCustom(c => [...c.slice(-4), e]); select(e.id); };
-  const done = EXERCISES.filter(e => solved.includes(e.id)).length;
+
+  const done = PATH_ORDER.filter(id => solved.includes(id)).length;
+  const recommended = nextRecommended(solved);
+  const recommendedEx = recommended ? EXERCISES.find(e => e.id === recommended) : undefined;
+  const upNext = nextAfter(ex.id, solved);
+  const upNextEx = upNext ? EXERCISES.find(e => e.id === upNext) : undefined;
+  const justSolved = verdict?.status === 'ok' && solved.includes(ex.id);
+  const unitDone = exUnit ? unitProgress(exUnit, solved).done === exUnit.exercises.length : false;
 
   return (
-    <div className="grid lg:grid-cols-[18rem_1fr] gap-6 items-start">
-      <aside aria-label="Lista de ejercicios" className="bg-white rounded-xl border border-slate-200 p-4 lg:sticky lg:top-4">
-        <h2 className="font-semibold mb-1">Ejercicios</h2>
-        <p className="text-xs text-slate-600 mb-3">{done} de {EXERCISES.length} resueltos · se guarda en este navegador</p>
-        <div className="h-1.5 bg-slate-200 rounded mb-3" aria-hidden="true"><div className="h-full bg-green-500 rounded" style={{ width: `${(done / EXERCISES.length) * 100}%` }} /></div>
-        <div className="flex gap-1 mb-3" role="group" aria-label="Filtrar por nivel">
-          {(['all', 1, 2, 3] as const).map(f => (
-            <button key={f} aria-pressed={filter === f} onClick={() => setFilter(f)} className={`flex-1 text-xs px-1 py-1 rounded border ${filter === f ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white border-slate-300 hover:bg-slate-50'}`}>{f === 'all' ? 'Todos' : LEVELS[f]}</button>
-          ))}
+    <div className="grid lg:grid-cols-[19rem_1fr] gap-6 items-start">
+      <aside aria-label="Ruta de aprendizaje" className="bg-white rounded-xl border border-slate-200 p-4 lg:sticky lg:top-16">
+        <h2 className="font-semibold mb-1">Ruta de aprendizaje</h2>
+        <p className="text-xs text-slate-600 mb-2">{done} de {PATH_ORDER.length} resueltos · se guarda en este navegador</p>
+        <div className="h-1.5 bg-slate-200 rounded mb-3" role="progressbar" aria-label="Progreso total" aria-valuemin={0} aria-valuemax={PATH_ORDER.length} aria-valuenow={done}>
+          <div className="h-full bg-green-500 rounded" style={{ width: `${(done / PATH_ORDER.length) * 100}%` }} />
         </div>
-        <ul className="space-y-1 list-none p-0 max-h-96 overflow-auto">
-          {list.map(e => (
-            <li key={e.id}>
-              <button onClick={() => select(e.id)} aria-current={e.id === ex.id} className={`w-full text-left px-2 py-2 rounded-lg flex items-start gap-2 text-sm ${e.id === ex.id ? 'bg-indigo-50 border border-indigo-300' : 'hover:bg-slate-50 border border-transparent'}`}>
-                {solved.includes(e.id) ? <CheckCircle2 className="w-4 h-4 text-green-600 mt-0.5 shrink-0" aria-label="Resuelto" /> : <Circle className="w-4 h-4 text-slate-600 mt-0.5 shrink-0" aria-label="Pendiente" />}
-                <span><span className="font-medium">{e.title}</span><br /><span className="text-xs text-slate-600">{LEVELS[e.level]} · {e.topic}</span></span>
-              </button>
-            </li>
-          ))}
-        </ul>
+        {recommendedEx
+          ? <Button className="w-full mb-3" onClick={() => select(recommendedEx.id)}>{done ? 'Continuar' : 'Empezar'}: {recommendedEx.title}</Button>
+          : <p role="status" className="mb-3 p-2 rounded-lg bg-green-50 border border-green-300 text-sm text-green-900">¡Completaste toda la ruta! Practica sin límite con los ejercicios aleatorios.</p>}
+
+        <ol className="space-y-2 list-none p-0 max-h-[26rem] overflow-auto pr-1">
+          {UNITS.map((u, ui) => {
+            const p = unitProgress(u, solved);
+            const status = unitStatus(u, solved);
+            const expanded = open.has(u.id);
+            return (
+              <li key={u.id} className={`rounded-lg border ${status === 'current' ? 'border-brand-300 bg-brand-50/50' : 'border-slate-200'}`}>
+                <button onClick={() => toggleUnit(u.id)} aria-expanded={expanded} aria-controls={`unit-${u.id}`}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-left">
+                  <span className={`shrink-0 w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center ${status === 'done' ? 'bg-green-600 text-white' : 'bg-slate-200 text-slate-800'}`} aria-hidden="true">{status === 'done' ? '✓' : ui + 1}</span>
+                  <span className="flex-1 min-w-0">
+                    <span className="block text-sm font-semibold text-ink leading-tight">{u.title}</span>
+                    <span className="block text-xs text-slate-600">{p.done}/{p.total} · {STATUS_LABEL[status]}</span>
+                  </span>
+                  <ChevronDown className={`w-4 h-4 text-slate-600 shrink-0 transition-transform ${expanded ? 'rotate-180' : ''}`} aria-hidden="true" />
+                </button>
+                {expanded && (
+                  <div id={`unit-${u.id}`} className="px-3 pb-3">
+                    <p className="text-xs text-slate-700 mb-2">{u.summary}</p>
+                    <ul className="space-y-1 list-none p-0">
+                      {u.exercises.map(id => {
+                        const e = EXERCISES.find(x => x.id === id)!;
+                        return (
+                          <li key={id}>
+                            <button onClick={() => select(id)} aria-current={id === ex.id} className={`w-full text-left px-2 py-1.5 rounded-lg flex items-start gap-2 text-sm ${id === ex.id ? 'bg-indigo-50 border border-indigo-300' : 'hover:bg-slate-50 border border-transparent'}`}>
+                              {solved.includes(id) ? <CheckCircle2 className="w-4 h-4 text-green-600 mt-0.5 shrink-0" aria-label="Resuelto" /> : <Circle className="w-4 h-4 text-slate-600 mt-0.5 shrink-0" aria-label="Pendiente" />}
+                              <span><span className="font-medium">{e.title}</span><br /><span className="text-xs text-slate-600">{LEVELS[e.level]} · {e.topic}</span></span>
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                    <p className="text-xs text-slate-700 mt-2">{u.tip.text} <a href={u.tip.href} className="underline text-brand-700">{u.tip.label}</a></p>
+                  </div>
+                )}
+              </li>
+            );
+          })}
+        </ol>
+
+        {custom.length > 0 && (
+          <div className="mt-3">
+            <h3 className="text-xs font-semibold uppercase text-slate-600 mb-1">Práctica libre</h3>
+            <ul className="space-y-1 list-none p-0">
+              {custom.map(e => (
+                <li key={e.id}><button onClick={() => select(e.id)} aria-current={e.id === ex.id} className={`w-full text-left px-2 py-1.5 rounded-lg text-sm ${e.id === ex.id ? 'bg-indigo-50 border border-indigo-300' : 'hover:bg-slate-50 border border-transparent'}`}>{e.title}<span className="block text-xs text-slate-600">{LEVELS[e.level]}</span></button></li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         <div className="mt-4 pt-3 border-t border-slate-200">
           <label className="text-xs font-semibold uppercase text-slate-600 block mb-1" htmlFor="rand-vars">Ejercicio aleatorio</label>
           <div className="flex gap-2">
@@ -165,6 +224,7 @@ export function ExercisesView() {
 
       <article className="bg-white rounded-xl border border-slate-200 p-5 min-w-0" aria-labelledby="ex-title">
         <div className="flex flex-wrap items-center gap-2 text-xs mb-2">
+          {exUnit && <Badge tone="neutral">Unidad {exIndex} · {exUnit.title}</Badge>}
           <span className="px-2 py-0.5 rounded bg-indigo-100 text-indigo-800 font-medium">{KIND_LABEL[ex.kind]}</span>
           <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700">{LEVELS[ex.level]}</span>
           <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-700">{ex.topic}</span>
@@ -185,6 +245,17 @@ export function ExercisesView() {
 
         <VerdictBox v={verdict} />
 
+        {justSolved && (
+          <section className="mt-3 p-3 rounded-lg bg-brand-50 border border-brand-200 text-sm" aria-label="Siguiente paso">
+            {unitDone && exUnit && (
+              <p className="flex items-center gap-2 font-semibold text-brand-900 mb-2"><PartyPopper className="w-4 h-4" aria-hidden="true" />¡Unidad completada: {exUnit.title}!</p>
+            )}
+            {upNextEx
+              ? <Button onClick={() => select(upNextEx.id)}>Siguiente: {upNextEx.title} →</Button>
+              : <p className="text-brand-900">{done === PATH_ORDER.length ? '¡Terminaste toda la ruta!' : 'No quedan más ejercicios por resolver en la ruta.'}</p>}
+          </section>
+        )}
+
         <div className="mt-5 flex flex-wrap gap-2">
           <button disabled={hints >= ex.hints.length} onClick={() => setHints(h => h + 1)} className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-300 hover:bg-slate-50 disabled:opacity-40">
             <Lightbulb className="w-4 h-4" /> Pista ({hints}/{ex.hints.length})
@@ -203,4 +274,3 @@ export function ExercisesView() {
     </div>
   );
 }
-

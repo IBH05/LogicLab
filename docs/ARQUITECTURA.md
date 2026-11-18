@@ -29,12 +29,13 @@ flowchart LR
 | `src/Shell.tsx` | Raíz: navegación entre calculadora, editor y ejercicios; el editor se mantiene montado para conservar el circuito |
 | `src/logic/circuit.ts` | Modelo de circuito (nodos y cables), simulación, detección de ciclos, expresión, caminos, costo/chips, acomodo, construcción desde expresiones y conversión a NAND/NOR; no depende de React |
 | `src/logic/karnaugh.ts` | Disposición en código Gray y grupos de Karnaugh a partir del resultado de Quine-McCluskey |
-| `src/logic/exercises.ts` | Banco de ejercicios, verificación por equivalencia, contraejemplos y generador aleatorio con semilla |
+| `src/logic/exercises.ts` | Banco de 27 ejercicios, verificación por equivalencia, contraejemplos y generador aleatorio con semilla |
+| `src/logic/path.ts` | Ruta de aprendizaje: 6 unidades ordenadas, progreso por unidad, estado (completada, en curso, pendiente) y siguiente ejercicio recomendado; no depende de React |
 | `src/components/CircuitEditor.tsx` | Lienzo SVG con arrastre, cableado por arrastre o por clic, historial, zoom, importación y exportación |
 | `src/components/CircuitAnalysis.tsx` | Tabla, expresión, Karnaugh, caminos y costo del circuito dibujado |
 | `src/components/CircuitDiagram.tsx` | Símbolos de compuertas, geometría y cables compartidos por el editor y los diagramas de solo lectura; `CircuitDiagram` dibuja un circuito simulado con interruptores accesibles (teclado: Espacio o Enter) y LED |
 | `src/components/KarnaughView.tsx` | Mapa de Karnaugh reutilizado en la calculadora, el editor y los ejercicios |
-| `src/components/ExercisesView.tsx` | Lista, progreso en `localStorage`, pistas y los cuatro tipos de ejercicio |
+| `src/components/ExercisesView.tsx` | Ruta por unidades, botón «Continuar», progreso en `localStorage`, pistas y los cuatro tipos de ejercicio |
 | `src/styles.css` | Tokens de diseño (`@theme static`: marca `brand-*`, `ink`, `muted`, `canvas`, `line`, `signal-on/off`, `radius-card`, `shadow-card`), foco visible, `scroll-padding-top` por la cabecera fija y movimiento reducido |
 | `src/components/ui.tsx` | Componentes base del sistema de diseño: `Button`, `LinkButton`, `Card`, `CardLink`, `Badge`, `Accordion`, `PageContainer`, `PageHeader` (el único `h1` de cada vista) y `Section` |
 | `src/components/SiteChrome.tsx` | `SiteHeader` (cabecera global única, fija) y `SiteFooter`, con la marca de LogicLab |

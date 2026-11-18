@@ -22,6 +22,9 @@ const wire = async (page: Page, out: number, inp: number) => {
   await page.mouse.up();
 };
 
+/** Abre una unidad de la ruta (si estaba colapsada) y devuelve el contenedor de la lista. */
+const openUnit = (page: Page, title: string) => page.getByRole('button', { name: new RegExp(`^${title} \\d+/\\d+`) }).click();
+
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
   await page.evaluate(() => { localStorage.clear(); localStorage.setItem('logiclab.tutorial.v1', 'done'); });
@@ -100,6 +103,8 @@ test('la calculadora abre su expresión en el editor', async ({ page }) => {
 
 test('ejercicio de expresión: contraejemplo, acierto y progreso', async ({ page }) => {
   await page.getByRole('button', { name: 'Ejercicios', exact: true }).click();
+  await openUnit(page, 'De un enunciado a una expresión');
+  await page.getByRole('button', { name: /Alarma del laboratorio Intermedio/ }).click();
   await page.getByLabel('Tu respuesta').fill('B + S*(P+M)');
   await page.getByRole('button', { name: 'Comprobar', exact: true }).click();
   await expect(page.getByRole('status').filter({ hasText: 'No coincide' })).toContainText('debería dar');
@@ -116,6 +121,7 @@ test('ejercicio de circuito: medio sumador con compuertas arrastradas', async ({
   // la paleta y el lienzo deben verse a la vez para poder arrastrar entre ellos
   await page.setViewportSize({ width: 1280, height: 1100 });
   await page.getByRole('button', { name: 'Ejercicios', exact: true }).click();
+  await openUnit(page, 'Circuitos');
   await page.getByRole('button', { name: /Medio sumador Básico/ }).click();
   await page.getByRole('button', { name: 'Comprobar circuito' }).click();
   await expect(page.getByRole('status').filter({ hasText: /Falta|no está conectada|falla/ })).toBeVisible();
@@ -130,6 +136,7 @@ test('ejercicio de circuito: medio sumador con compuertas arrastradas', async ({
 
 test('ejercicio de tabla de verdad y generador aleatorio', async ({ page }) => {
   await page.getByRole('button', { name: 'Ejercicios', exact: true }).click();
+  await openUnit(page, 'Tablas de verdad');
   await page.getByRole('button', { name: /Control de motor/ }).click();
   await page.getByRole('button', { name: 'Comprobar', exact: true }).click();
   await expect(page.getByRole('status').filter({ hasText: 'Faltan' })).toBeVisible();
@@ -341,4 +348,69 @@ test('fase 3: el editor sigue funcionando tras compartir los símbolos', async (
   await expect(page.getByRole('group', { name: 'Diagrama del circuito' }).locator('circle[r="7"]')).toHaveCount(9);
   await page.getByRole('tab', { name: 'Tabla de verdad' }).click();
   await expect(page.locator('[role=tabpanel] tbody tr')).toHaveCount(32);
+});
+
+test('ruta: empieza por lo básico, avanza y marca las unidades completadas', async ({ page }) => {
+  await page.goto('/#/ejercicios');
+  await expect(page.getByText(/0 de 27 resueltos/)).toBeVisible();
+  await expect(page.getByRole('heading', { level: 2, name: 'Compuerta XOR' })).toBeVisible(); // el recomendado
+  await expect(page.getByRole('button', { name: /^Empezar: Compuerta XOR/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /^Compuertas y señales 0\/3/ })).toHaveAttribute('aria-expanded', 'true');
+  await expect(page.getByRole('button', { name: /^NAND y NOR 0\/5/ })).toHaveAttribute('aria-expanded', 'false');
+
+  // XOR: filas 00→0, 01→1, 10→1, 11→0 (cada clic alterna ?→1→0)
+  const cell = (i: number) => page.getByRole('button', { name: new RegExp(`^Salida de la fila ${i}:`) });
+  await cell(0).click(); await cell(0).click();
+  await cell(1).click(); await cell(2).click();
+  await cell(3).click(); await cell(3).click();
+  await page.getByRole('button', { name: 'Comprobar', exact: true }).click();
+  await expect(page.getByRole('status').filter({ hasText: '¡Tabla correcta!' })).toBeVisible();
+  await expect(page.getByText(/1 de 27 resueltos/)).toBeVisible();
+  await expect(page.getByRole('button', { name: /^Compuertas y señales 1\/3/ })).toBeVisible();
+  await page.getByRole('button', { name: /^Siguiente: Compuerta NOR/ }).click();
+  await expect(page.getByRole('heading', { level: 2, name: 'Compuerta NOR' })).toBeVisible();
+});
+
+test('ruta: «Continuar» retoma el progreso guardado y avisa al completar una unidad', async ({ page }) => {
+  await page.evaluate(() => localStorage.setItem('logiclab.progress.v1', JSON.stringify(['g-xor', 'g-nor', 'g-not-and', 'tabla-motor', 'tabla-escalera'])));
+  await page.goto('/#/ejercicios');
+  await page.reload();
+  await expect(page.getByText(/5 de 27 resueltos/)).toBeVisible();
+  await expect(page.getByRole('button', { name: /^Compuertas y señales 3\/3 · Completada/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /^Tablas de verdad 2\/3 · En curso/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /^Continuar: Riego automático/ })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 2, name: 'Riego automático' })).toBeVisible();
+
+  // R = T + S·L′ con las variables en el orden del enunciado S,L,T → 0,1,0,1,1,1,0,1
+  const cell = (i: number) => page.getByRole('button', { name: new RegExp(`^Salida de la fila ${i}:`) });
+  for (const [i, v] of [0, 1, 0, 1, 1, 1, 0, 1].entries()) { await cell(i).click(); if (v === 0) await cell(i).click(); }
+  await page.getByRole('button', { name: 'Comprobar', exact: true }).click();
+  await expect(page.getByRole('region', { name: 'Siguiente paso' })).toContainText('¡Unidad completada: Tablas de verdad!');
+  await expect(page.getByRole('button', { name: /^Tablas de verdad 3\/3 · Completada/ })).toBeVisible();
+  await page.getByRole('button', { name: /^Siguiente: Comparador de 1 bit/ }).click();
+  await expect(page.getByRole('heading', { level: 2, name: 'Comparador de 1 bit' })).toBeVisible();
+  await expect(page.getByText(/Unidad 3 · De un enunciado a una expresión/)).toBeVisible();
+});
+
+test('ruta: ver la solución no cuenta como resuelto y los ejercicios aleatorios quedan en práctica libre', async ({ page }) => {
+  await page.goto('/#/ejercicios');
+  page.once('dialog', d => d.accept());
+  await page.getByRole('button', { name: 'Ver solución' }).click();
+  await expect(page.getByText('Solución', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Comprobar', exact: true }).click(); // tabla vacía
+  await expect(page.getByText(/0 de 27 resueltos/)).toBeVisible();
+  await page.getByRole('button', { name: 'Generar' }).click();
+  await expect(page.getByRole('heading', { level: 3, name: 'Práctica libre' })).toBeVisible();
+  await expect(page.getByText(/0 de 27 resueltos/)).toBeVisible(); // no altera el progreso de la ruta
+});
+
+test('ruta: accesibilidad y diseño adaptable', async ({ page }) => {
+  await page.goto('/#/ejercicios');
+  await openUnit(page, 'NAND y NOR');
+  const r = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
+  expect(r.violations.map(v => `${v.id}: ${v.nodes[0]?.html}`)).toEqual([]);
+  for (const width of [320, 390, 768, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `ancho ${width}`).toBe(true);
+  }
 });
