@@ -24,7 +24,7 @@ const wire = async (page: Page, out: number, inp: number) => {
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
-  await page.evaluate(() => localStorage.clear());
+  await page.evaluate(() => { localStorage.clear(); localStorage.setItem('logiclab.tutorial.v1', 'done'); });
   await page.reload();
 });
 
@@ -184,4 +184,55 @@ test('inicio: accesibilidad y diseño adaptable', async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `ancho ${width}`).toBe(true);
   }
+});
+
+test('tutorial guiado: avanza solo al completar cada paso', async ({ page }) => {
+  await page.evaluate(() => localStorage.removeItem('logiclab.tutorial.v1'));
+  await page.reload();
+  await page.getByRole('button', { name: 'Editor de circuitos' }).click();
+  const tour = page.getByRole('region', { name: 'Tutorial guiado' });
+  await expect(tour).toContainText('Paso 1 de 10');
+  await expect(page.getByRole('button', { name: /^Agregar Entrada/ })).toHaveClass(/ring-amber/);
+
+  await drop(page, 'Entrada', 80, 80);
+  await expect(tour).toContainText('Paso 2 de 10');
+  await drop(page, 'Entrada', 80, 180);
+  await expect(tour).toContainText('Paso 3 de 10');
+  await drop(page, 'AND', 330, 130);
+  await expect(tour).toContainText('Paso 4 de 10');
+  await drop(page, 'Salida', 620, 130);
+  await expect(tour).toContainText('Paso 5 de 10');
+  await wire(page, 0, 0);
+  await expect(tour).toContainText('Paso 6 de 10');
+  await wire(page, 1, 1);
+  await expect(tour).toContainText('Paso 7 de 10');
+  await wire(page, 2, 2);
+  await expect(tour).toContainText('Paso 8 de 10');
+  await canvas(page).click({ position: { x: 80, y: 80 } });
+  await canvas(page).click({ position: { x: 80, y: 180 } });
+  await expect(tour).toContainText('Paso 9 de 10');
+  await tour.getByRole('button', { name: 'Siguiente', exact: true }).click();
+  await expect(tour).toContainText('Paso 10 de 10');
+  await tour.getByRole('button', { name: 'Finalizar' }).click();
+  await expect(tour).toHaveCount(0);
+
+  // no vuelve a iniciarse solo, pero se puede repetir (con aviso si hay un circuito)
+  await page.reload();
+  await page.getByRole('button', { name: 'Editor de circuitos' }).click();
+  await expect(page.getByRole('region', { name: 'Tutorial guiado' })).toHaveCount(0);
+  page.once('dialog', d => d.accept());
+  await page.getByRole('button', { name: 'Tutorial', exact: true }).click();
+  await expect(page.getByRole('region', { name: 'Tutorial guiado' })).toContainText('Paso 1 de 10');
+  await page.getByRole('button', { name: 'Omitir tutorial' }).click();
+  await page.getByRole('button', { name: 'Deshacer' }).click(); // recupera el circuito
+  await expect(canvas(page).locator('circle[r="7"]')).toHaveCount(3);
+});
+
+test('tutorial: accesibilidad', async ({ page }) => {
+  await page.evaluate(() => localStorage.removeItem('logiclab.tutorial.v1'));
+  await page.reload();
+  await page.getByRole('button', { name: 'Editor de circuitos' }).click();
+  await expect(page.getByRole('region', { name: 'Tutorial guiado' })).toBeVisible();
+  const r = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
+  expect(r.violations.map(v => `${v.id}: ${v.nodes[0]?.html}`)).toEqual([]);
 });

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Download, Eraser, LayoutGrid, Redo2, Trash2, Undo2, Upload, ZoomIn, ZoomOut } from 'lucide-react';
+import { Download, Eraser, LayoutGrid, Lightbulb, Redo2, Trash2, Undo2, Upload, ZoomIn, ZoomOut } from 'lucide-react';
 import type { Bit } from '../logic/boolean';
 import {
   GATE_TYPES, SIMPLIFY_LIMIT, analyzeOutput, autoLayout, circuitFromExpressions, circuitIssues, connect, driverMap, emptyCircuit, isGate, isValidLabel,
@@ -7,6 +7,7 @@ import {
   type CNode, type Circuit, type GateType,
 } from '../logic/circuit';
 import { CircuitAnalysis } from './CircuitAnalysis';
+import { TUTORIAL_STEPS } from '../logic/tutorial';
 
 // ───────────────────────── Geometría y símbolos ─────────────────────────
 
@@ -38,6 +39,7 @@ const ioColor = (v: Bit | null | undefined) => (v === 1 ? '#16a34a' : v === 0 ? 
 type Pending = { from: string; x: number; y: number; sx: number; sy: number; dragging: boolean };
 
 const STORAGE_KEY = 'logiclab.circuit.v1';
+export const TUTORIAL_KEY = 'logiclab.tutorial.v1';
 const EXAMPLES: { label: string; expr: string }[] = [
   { label: 'Alarma del laboratorio', expr: "Z = B + T'*S*(P+M)" },
   { label: 'Medio sumador', expr: 'S = A^B; C = A*B' },
@@ -77,6 +79,11 @@ export function CircuitEditor({ initial, storageKey = STORAGE_KEY, allowedGates 
   const [status, setStatus] = useState('');
   const [exprText, setExprText] = useState('');
   const [showNames, setShowNames] = useState(true);
+  // Tutorial guiado: se inicia solo la primera vez que se abre el editor vacío.
+  const [tour, setTour] = useState<number | null>(() => {
+    if (!showAnalysis || hist.present.nodes.length) return null;
+    try { return localStorage.getItem(TUTORIAL_KEY) ? null : 0; } catch { return null; }
+  });
   const svgRef = useRef<SVGSVGElement>(null);
   const drag = useRef<{ id: string; dx: number; dy: number; moved: boolean; start: Circuit; sx: number; sy: number } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -91,6 +98,19 @@ export function CircuitEditor({ initial, storageKey = STORAGE_KEY, allowedGates 
   }, [circuit, onChange, storageKey]);
 
   const values = useMemo(() => simulate(circuit, inputValues), [circuit, inputValues]);
+  const tourStep = tour !== null ? TUTORIAL_STEPS[tour] : null;
+  const tourDone = tourStep?.done ? tourStep.done(circuit, values) : false;
+  const finishTour = () => { setTour(null); try { localStorage.setItem(TUTORIAL_KEY, 'done'); } catch { /* ignorar */ } };
+  useEffect(() => {
+    if (tour === null || !tourDone) return;
+    const t = setTimeout(() => setTour(k => (k === null ? null : k + 1 >= TUTORIAL_STEPS.length ? k : k + 1)), 900);
+    return () => clearTimeout(t);
+  }, [tour, tourDone]);
+  const startTour = () => {
+    if (circuit.nodes.length && !confirm('El tutorial empieza con un lienzo vacío. Podrás recuperar tu circuito con «Deshacer». ¿Continuar?')) return;
+    if (circuit.nodes.length) { commit(emptyCircuit()); setSelected(null); setHighlight(null); setPending(null); setInputValues({}); }
+    setTour(0);
+  };
   const drivers = useMemo(() => driverMap(circuit), [circuit]);
   const byId = useMemo(() => new Map(circuit.nodes.map(n => [n.id, n])), [circuit]);
   const issues = useMemo(() => circuitIssues(circuit), [circuit]);
@@ -298,13 +318,32 @@ export function CircuitEditor({ initial, storageKey = STORAGE_KEY, allowedGates 
   return (
     <div className={`grid gap-4 ${showAnalysis ? 'xl:grid-cols-[minmax(0,1fr)_27rem] xl:items-start' : ''}`} onKeyDown={onKeyDown}>
       <div className="order-1 min-w-0 bg-white rounded-xl border border-slate-200 overflow-hidden xl:col-start-1 xl:row-start-1">
+        {tourStep && tour !== null && (
+          <section aria-label="Tutorial guiado" className="p-4 bg-amber-50 border-b border-amber-300">
+            <div className="flex flex-wrap items-start gap-3 justify-between">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-semibold uppercase text-amber-900">Tutorial · Paso {tour + 1} de {TUTORIAL_STEPS.length}</p>
+                <h2 className="text-lg font-bold text-slate-900">{tourStep.title}</h2>
+                <p aria-live="polite" className="text-sm text-slate-800 mt-1">{tourStep.text}</p>
+                {tourDone && <p role="status" className="mt-2 text-sm font-semibold text-green-800">✓ ¡Hecho!</p>}
+              </div>
+              <div className="flex gap-2 shrink-0">
+                <button onClick={finishTour} className="px-3 py-1.5 rounded-lg border border-slate-400 bg-white hover:bg-slate-50 text-sm">{tour === TUTORIAL_STEPS.length - 1 ? 'Cerrar' : 'Omitir tutorial'}</button>
+                <button disabled={tour === 0} onClick={() => setTour(tour - 1)} className="px-3 py-1.5 rounded-lg border border-slate-400 bg-white hover:bg-slate-50 text-sm disabled:opacity-40">Anterior</button>
+                <button onClick={() => (tour === TUTORIAL_STEPS.length - 1 ? finishTour() : setTour(tour + 1))} className="px-3 py-1.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 text-sm font-medium">{tour === TUTORIAL_STEPS.length - 1 ? 'Finalizar' : tourDone || !tourStep.done ? 'Siguiente' : 'Saltar paso'}</button>
+              </div>
+            </div>
+            <div className="mt-3 h-1.5 bg-amber-200 rounded" aria-hidden="true"><div className="h-full bg-amber-600 rounded transition-all" style={{ width: `${((tour + 1) / TUTORIAL_STEPS.length) * 100}%` }} /></div>
+          </section>
+        )}
+
         {/* Paleta */}
         <div className="flex flex-wrap items-center gap-2 p-3 border-b border-slate-200 bg-slate-50">
           <span className="text-xs font-semibold uppercase text-slate-600 mr-1">Arrastra al lienzo:</span>
           {paletteTypes.map(t => (
             <button key={t} draggable onDragStart={e => { e.dataTransfer.setData('text/logiclab-gate', t); e.dataTransfer.effectAllowed = 'copy'; }}
               onClick={() => addNode(t)} aria-label={`Agregar ${NAMES[t]} (${HELP[t]})`} title={`${NAMES[t]} · ${HELP[t]} — arrastra o haz clic`}
-              className="flex flex-col items-center px-2 py-1 rounded-lg border border-slate-300 bg-white hover:bg-indigo-50 hover:border-indigo-400 cursor-grab active:cursor-grabbing min-w-14">
+              className={`flex flex-col items-center px-2 py-1 rounded-lg border bg-white hover:bg-indigo-50 hover:border-indigo-400 cursor-grab active:cursor-grabbing min-w-14 ${tourStep?.highlight === t && !tourDone ? 'border-amber-500 ring-4 ring-amber-300' : 'border-slate-300'}`}>
               <svg width="46" height="26" viewBox="-2 -2 86 44" aria-hidden="true" className="pointer-events-none">
                 {t === 'INPUT' ? <><rect x="0" y="6" width="56" height="28" rx="6" fill="#fff" stroke="#334155" strokeWidth="3" /><text x="28" y="26" textAnchor="middle" fontSize="20" fontWeight="700">A</text></>
                   : t === 'OUTPUT' ? <><circle cx="40" cy="20" r="16" fill="#fff" stroke="#334155" strokeWidth="3" /><path d="M0 20 H24" stroke="#334155" strokeWidth="3" /></>
@@ -332,6 +371,7 @@ export function CircuitEditor({ initial, storageKey = STORAGE_KEY, allowedGates 
           <ToolBtn icon={<Download className="w-4 h-4" />} label="PNG" onClick={exportPng} disabled={!circuit.nodes.length} />
           <ToolBtn icon={<Download className="w-4 h-4" />} label="JSON" onClick={() => download('circuito.json', new Blob([serializeCircuit(circuit)], { type: 'application/json' }))} disabled={!circuit.nodes.length} />
           <ToolBtn icon={<Upload className="w-4 h-4" />} label="Abrir JSON" onClick={() => fileRef.current?.click()} />
+          {showAnalysis && <ToolBtn icon={<Lightbulb className="w-4 h-4" />} label="Tutorial" onClick={startTour} />}
           <input ref={fileRef} type="file" accept="application/json,.json" className="hidden" aria-label="Archivo de circuito JSON" onChange={e => { const f = e.target.files?.[0]; if (f) importJson(f); e.target.value = ''; }} />
         </div>
 
