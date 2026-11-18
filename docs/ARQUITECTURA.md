@@ -35,9 +35,10 @@ flowchart LR
 | `src/components/KarnaughView.tsx` | Mapa de Karnaugh reutilizado en la calculadora, el editor y los ejercicios |
 | `src/components/ExercisesView.tsx` | Lista, progreso en `localStorage`, pistas y los cuatro tipos de ejercicio |
 | `src/styles.css` | Tokens de diseño (`@theme static`: marca `brand-*`, `ink`, `muted`, `canvas`, `line`, `signal-on/off`, `radius-card`, `shadow-card`), foco visible, `scroll-padding-top` por la cabecera fija y movimiento reducido |
-| `src/components/ui.tsx` | Componentes base del sistema de diseño: `Button`, `LinkButton`, `Card`, `CardLink`, `Badge`, `PageContainer`, `PageHeader` (el único `h1` de cada vista) y `Section` |
+| `src/components/ui.tsx` | Componentes base del sistema de diseño: `Button`, `LinkButton`, `Card`, `CardLink`, `Badge`, `Accordion`, `PageContainer`, `PageHeader` (el único `h1` de cada vista) y `Section` |
 | `src/components/SiteChrome.tsx` | `SiteHeader` (cabecera global única, fija) y `SiteFooter`, con la marca de LogicLab |
-| `src/components/Home.tsx` | Página de inicio: presentación con demo interactiva, herramientas, ruta de aprendizaje |
+| `src/components/Home.tsx` | Página de inicio: presentación con demo interactiva, módulos con capturas, caso de la alarma (cifras calculadas con `circuit.ts`), ruta de aprendizaje, preguntas frecuentes y llamada final |
+| `scripts/capture-screenshots.mjs` | Genera con Playwright las capturas de `public/capturas/` desde la aplicación real |
 | `tests/unit/boolean.test.ts` | Sintaxis, equivalencias y regresiones del motor |
 | `tests/e2e/app.spec.ts` | Flujos, tamaños de pantalla, axe y rendimiento sobre el build |
 | `.github/workflows/ci.yml` | Validaciones en pushes y pull requests a main |

@@ -56,7 +56,7 @@ test('construir un circuito AND arrastrando compuertas y cables', async ({ page 
   await page.getByRole('tab', { name: 'Caminos' }).click();
   await expect(page.getByText(/2 caminos/)).toBeVisible();
   await page.getByRole('tab', { name: 'Costo y chips' }).click();
-  await expect(page.getByText('7408').first()).toBeVisible();
+  await expect(page.locator('[role=tabpanel]').getByText('7408').first()).toBeVisible();
   expect(errors).toEqual([]);
 });
 
@@ -77,13 +77,13 @@ test('alarma: expresión → circuito → solo NAND con la misma tabla', async (
   await page.getByRole('tab', { name: 'Tabla de verdad' }).click();
   await expect(page.locator('[role=tabpanel] tbody tr')).toHaveCount(32);
   await page.getByRole('tab', { name: 'Costo y chips' }).click();
-  await expect(page.getByText('7400').first()).toBeVisible();
+  await expect(page.locator('[role=tabpanel]').getByText('7400').first()).toBeVisible();
   await expect(page.getByText('Simplificado solo NAND')).toBeVisible();
 
   // deshacer devuelve el circuito original
   await page.getByRole('button', { name: 'Deshacer' }).click();
   await page.getByRole('tab', { name: 'Costo y chips' }).click();
-  await expect(page.getByText('7432').first()).toBeVisible();
+  await expect(page.locator('[role=tabpanel]').getByText('7432').first()).toBeVisible();
 });
 
 test('la calculadora abre su expresión en el editor', async ({ page }) => {
@@ -268,4 +268,48 @@ test('fase 1: tokens de diseño, marca y pie navegables', async ({ page }) => {
   await expect(page).toHaveURL(/#\/$/);
   await page.getByRole('contentinfo').getByRole('link', { name: 'Editor de circuitos' }).click();
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Editor de circuitos lógicos');
+});
+
+test('fase 2: módulos con capturas, caso de la alarma y preguntas frecuentes', async ({ page }) => {
+  await page.goto('/#/');
+  // las tres capturas de los módulos cargan de verdad
+  const imgs = page.locator('main a img');
+  await expect(imgs).toHaveCount(3);
+  await imgs.first().scrollIntoViewIfNeeded();
+  for (let i = 0; i < 3; i++) {
+    await imgs.nth(i).scrollIntoViewIfNeeded();
+    await expect.poll(() => imgs.nth(i).evaluate((el: HTMLImageElement) => el.complete && el.naturalWidth > 0)).toBe(true);
+  }
+  await expect(page.getByRole('link', { name: /Calculadora booleana/ })).toHaveAttribute('href', '#/calculadora');
+
+  // caso real: las cifras salen del motor y cambian al alternar la versión
+  const caso = page.getByRole('region', { name: 'De un enunciado a un circuito' });
+  await expect(caso.getByText(/32 filas/)).toBeVisible();
+  const before = await caso.locator('p[aria-live]').textContent();
+  expect(before).toMatch(/\d+ compuertas/);
+  await caso.getByRole('button', { name: 'Solo NAND' }).click();
+  await expect(caso.getByRole('button', { name: 'Solo NAND' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(caso.getByRole('img', { name: /solo con compuertas NAND/ })).toBeVisible();
+  expect(await caso.locator('p[aria-live]').textContent()).not.toBe(before);
+
+  // FAQ con teclado
+  const q = page.getByText('¿Necesito crear una cuenta?');
+  await q.focus();
+  await page.keyboard.press('Enter');
+  await expect(page.getByText('No. Todo se calcula en tu navegador')).toBeVisible();
+
+  // llamada final
+  await page.getByRole('link', { name: 'Ir al editor' }).click();
+  await expect(page).toHaveURL(/#\/editor$/);
+});
+
+test('fase 2: la página de inicio mantiene un solo h1 y sin desborde', async ({ page }) => {
+  await page.goto('/#/');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
+  for (const width of [320, 390, 768, 1024, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `ancho ${width}`).toBe(true);
+  }
+  const r = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
+  expect(r.violations.map(v => `${v.id}: ${v.nodes[0]?.html}`)).toEqual([]);
 });

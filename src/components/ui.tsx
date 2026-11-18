@@ -1,3 +1,4 @@
+import { ChevronDown } from 'lucide-react';
 import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode } from 'react';
 
 /* Componentes base del sistema de diseño. Solo usan tokens de styles.css. */
@@ -67,5 +68,22 @@ export function Section({ id, title, description, children }: { id: string; titl
       {description && <p className="text-ink-soft mt-1 mb-5 max-w-3xl">{description}</p>}
       <div className={description ? '' : 'mt-5'}>{children}</div>
     </section>
+  );
+}
+
+/** Acordeón accesible basado en <details>: funciona con teclado y sin JavaScript adicional. */
+export function Accordion({ items }: { items: { id: string; question: string; answer: ReactNode }[] }) {
+  return (
+    <div className="divide-y divide-line border border-line rounded-card bg-surface shadow-card">
+      {items.map(it => (
+        <details key={it.id} className="group">
+          <summary className="flex items-center justify-between gap-4 px-5 py-4 font-semibold text-ink cursor-pointer list-none [&::-webkit-details-marker]:hidden">
+            {it.question}
+            <ChevronDown className="w-5 h-5 text-muted shrink-0 transition-transform group-open:rotate-180" aria-hidden="true" />
+          </summary>
+          <div className="px-5 pb-4 text-sm text-ink-soft space-y-2">{it.answer}</div>
+        </details>
+      ))}
+    </div>
   );
 }
