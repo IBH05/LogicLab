@@ -49,7 +49,7 @@ export default function Shell() {
       <SiteHeader items={NAV} current={view} onNavigate={id => go(id as View)} />
 
       <div className="flex-1">
-        {visited.has('home') && <div hidden={view !== 'home'}><Home /></div>}
+        {visited.has('home') && <div hidden={view !== 'home'}><Home onOpenInEditor={openInEditor} /></div>}
         {visited.has('calc') && <div hidden={view !== 'calc'}><App onOpenInEditor={openInEditor} /></div>}
 
         {visited.has('editor') && (

@@ -160,12 +160,17 @@ test('accesibilidad y diseño adaptable del editor y los ejercicios', async ({ p
 
 test('inicio: demo interactiva, navegación y enlaces directos', async ({ page }) => {
   await expect(page.getByRole('heading', { level: 1, name: /Aprende lógica digital/ })).toBeVisible();
-  // demo: AND con A=1, B=0 → 0; al encender B → 1
-  await expect(page.getByRole('img', { name: 'Compuerta AND con salida 0' })).toBeVisible();
-  await page.getByRole('switch', { name: 'Entrada B' }).click();
-  await expect(page.getByRole('img', { name: 'Compuerta AND con salida 1' })).toBeVisible();
-  await page.getByRole('button', { name: 'XOR', exact: true }).click();
-  await expect(page.getByRole('img', { name: 'Compuerta XOR con salida 0' })).toBeVisible();
+  // demo con un circuito real: medio sumador (S = A xor B, C = A and B)
+  const demo = page.getByLabel('Demostración con un circuito real');
+  await expect(demo.locator('tbody tr[aria-current="true"]')).toContainText('0000');
+  await demo.getByRole('switch', { name: 'Entrada A' }).click();
+  await demo.getByRole('switch', { name: 'Entrada B' }).click();
+  await expect(demo.getByRole('switch', { name: 'Entrada B' })).toHaveAttribute('aria-checked', 'true');
+  await expect(demo.locator('tbody tr[aria-current="true"]')).toHaveText('1110'); // A=1 B=1 → C=1 S=0 (salidas en orden alfabético)
+  await expect(demo.locator('p.sr-only')).toHaveText('A=1, B=1: C=1, S=0');
+  await demo.getByRole('button', { name: 'Mayoría de 3' }).click();
+  await expect(demo.locator('tbody tr')).toHaveCount(8);
+  await expect(demo.locator('tbody tr[aria-current="true"]')).toContainText('000'); // se reinicia
   // tarjetas y botón atrás
   await page.getByRole('link', { name: /Ejercicios/ }).first().click();
   await expect(page).toHaveURL(/#\/ejercicios$/);
@@ -312,4 +317,28 @@ test('fase 2: la página de inicio mantiene un solo h1 y sin desborde', async ({
   }
   const r = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
   expect(r.violations.map(v => `${v.id}: ${v.nodes[0]?.html}`)).toEqual([]);
+});
+
+test('fase 3: la demo se maneja con teclado y abre su circuito en el editor', async ({ page }) => {
+  await page.goto('/#/');
+  const demo = page.getByLabel('Demostración con un circuito real');
+  await demo.getByRole('switch', { name: 'Entrada A' }).focus();
+  await page.keyboard.press('Space');
+  await expect(demo.getByRole('switch', { name: 'Entrada A' })).toHaveAttribute('aria-checked', 'true');
+  await expect(demo.locator('p.sr-only')).toHaveText('A=1, B=0: C=0, S=1');
+  await demo.getByRole('button', { name: /Abrir este circuito en el editor/ }).click();
+  await expect(page.getByRole('heading', { name: 'Editor de circuitos lógicos' })).toBeVisible();
+  await expect(page.getByRole('group', { name: 'Diagrama del circuito' }).locator('circle[r="7"]')).toHaveCount(4); // A, B, XOR, AND
+  await page.getByRole('tab', { name: 'Expresión' }).click();
+  await expect(page.locator('[role=tabpanel]').getByText('A*B', { exact: true }).first()).toBeVisible(); // salida C
+  await page.getByRole('region', { name: 'Análisis del circuito' }).getByRole('combobox').selectOption({ label: 'S' });
+  await expect(page.locator('[role=tabpanel]').getByText('A^B', { exact: true }).first()).toBeVisible();
+});
+
+test('fase 3: el editor sigue funcionando tras compartir los símbolos', async ({ page }) => {
+  await page.goto('/#/editor');
+  await page.getByRole('button', { name: 'Alarma del laboratorio' }).click();
+  await expect(page.getByRole('group', { name: 'Diagrama del circuito' }).locator('circle[r="7"]')).toHaveCount(9);
+  await page.getByRole('tab', { name: 'Tabla de verdad' }).click();
+  await expect(page.locator('[role=tabpanel] tbody tr')).toHaveCount(32);
 });

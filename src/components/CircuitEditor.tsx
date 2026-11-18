@@ -7,15 +7,10 @@ import {
   type CNode, type Circuit, type GateType,
 } from '../logic/circuit';
 import { CircuitAnalysis } from './CircuitAnalysis';
+import { GATE_W, GateBody, IO_W, inPin, ioColor, outPin, size, wirePath } from './CircuitDiagram';
 import { TUTORIAL_STEPS } from '../logic/tutorial';
 
 // ───────────────────────── Geometría y símbolos ─────────────────────────
-
-const GATE_W = 80;
-const IO_W = 64;
-const size = (n: CNode) => (n.type === 'INPUT' || n.type === 'OUTPUT' ? { w: IO_W, h: 40 } : { w: GATE_W, h: n.type === 'NOT' ? 40 : Math.max(40, pinCount(n) * 20) });
-const inPin = (n: CNode, i: number) => ({ x: n.x, y: n.y + (n.type === 'OUTPUT' ? 20 : (size(n).h * (i + 0.5)) / pinCount(n)) });
-const outPin = (n: CNode) => ({ x: n.x + size(n).w, y: n.y + size(n).h / 2 });
 
 const NAMES: Record<GateType, string> = {
   INPUT: 'Entrada', OUTPUT: 'Salida', NOT: 'NOT', AND: 'AND', OR: 'OR', NAND: 'NAND', NOR: 'NOR', XOR: 'XOR', XNOR: 'XNOR',
@@ -23,18 +18,6 @@ const NAMES: Record<GateType, string> = {
 const HELP: Record<GateType, string> = {
   INPUT: 'Interruptor', OUTPUT: 'LED', NOT: 'Inversor', AND: 'Y', OR: 'O', NAND: 'NO-Y', NOR: 'NO-O', XOR: 'O exclusiva', XNOR: 'Coincidencia',
 };
-
-const bodyPath = (type: GateType, h: number) => {
-  switch (type) {
-    case 'AND': case 'NAND': return `M0 0 H35 A35 ${h / 2} 0 0 1 35 ${h} H0 Z`;
-    case 'OR': case 'NOR': case 'XOR': case 'XNOR':
-      return `M0 0 C25 0 55 ${h * 0.1} 70 ${h / 2} C55 ${h * 0.9} 25 ${h} 0 ${h} C${h * 0.35} ${h * 0.75} ${h * 0.35} ${h * 0.25} 0 0 Z`;
-    case 'NOT': return `M0 0 L58 ${h / 2} L0 ${h} Z`;
-    default: return '';
-  }
-};
-
-const ioColor = (v: Bit | null | undefined) => (v === 1 ? '#16a34a' : v === 0 ? '#64748b' : '#94a3b8');
 
 type Pending = { from: string; x: number; y: number; sx: number; sy: number; dragging: boolean };
 
@@ -310,10 +293,6 @@ export function CircuitEditor({ initial, storageKey = STORAGE_KEY, allowedGates 
   const paletteTypes: GateType[] = [...(lockIO ? [] : (['INPUT', 'OUTPUT'] as GateType[])), ...GATE_TYPES.filter(t => allowedGates.includes(t))];
 
   // ── Render ──
-  const wirePath = (x1: number, y1: number, x2: number, y2: number) => {
-    const dx = Math.max(30, Math.abs(x2 - x1) / 2);
-    return `M${x1} ${y1} C${x1 + dx} ${y1} ${x2 - dx} ${y2} ${x2} ${y2}`;
-  };
 
   return (
     <div className={`grid gap-4 ${showAnalysis ? 'xl:grid-cols-[minmax(0,1fr)_27rem] xl:items-start' : ''}`} onKeyDown={onKeyDown}>
@@ -552,17 +531,5 @@ function ToolBtn({ icon, label, onClick, disabled }: { icon: React.ReactNode; la
       className="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed">
       {icon}<span className="text-xs">{label}</span>
     </button>
-  );
-}
-
-function GateBody({ type, h, stroke, fill, sw }: { type: GateType; h: number; stroke: string; fill: string; sw: number }) {
-  const bubble = type === 'NOT' || type === 'NAND' || type === 'NOR' || type === 'XNOR';
-  const bx = type === 'NOT' ? 63 : 75;
-  return (
-    <g fill={fill} stroke={stroke} strokeWidth={sw} strokeLinejoin="round">
-      <path d={bodyPath(type, h)} />
-      {(type === 'XOR' || type === 'XNOR') && <path d={`M-8 0 C${h * 0.35 - 8} ${h * 0.25} ${h * 0.35 - 8} ${h * 0.75} -8 ${h}`} fill="none" />}
-      {bubble && <circle cx={bx} cy={h / 2} r="5" />}
-    </g>
   );
 }

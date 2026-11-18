@@ -1,56 +1,64 @@
 import { useMemo, useState } from 'react';
 import { Calculator, Check, CircuitBoard, GraduationCap } from 'lucide-react';
 import { EXERCISES } from '../logic/exercises';
-import { analyzeOutput, circuitCost, circuitFromExpressions, toUniversal } from '../logic/circuit';
-import { Accordion, Badge, Card, CardLink, LinkButton, Section } from './ui';
+import type { Bit } from '../logic/boolean';
+import { analyzeOutput, circuitCost, circuitFromExpressions, simulate, toUniversal } from '../logic/circuit';
+import { CircuitDiagram } from './CircuitDiagram';
+import { Accordion, Badge, Button, Card, CardLink, LinkButton, Section } from './ui';
 
-type DemoGate = 'AND' | 'OR' | 'XOR' | 'NAND';
-const apply = (g: DemoGate, a: 0 | 1, b: 0 | 1): 0 | 1 =>
-  (g === 'AND' ? a & b : g === 'OR' ? a | b : g === 'XOR' ? a ^ b : (a & b) ^ 1) as 0 | 1;
+type Preset = { id: string; label: string; expr: string; caption: string };
+const PRESETS: Preset[] = [
+  { id: 'sumador', label: 'Medio sumador', expr: 'S = A^B; C = A*B', caption: 'Suma dos bits: S es la suma y C el acarreo.' },
+  { id: 'mayoria', label: 'Mayoría de 3', expr: 'M = A*B + A*C + B*C', caption: 'M vale 1 cuando al menos dos entradas valen 1.' },
+];
 
-function Switch({ label, on, onToggle }: { label: string; on: boolean; onToggle: () => void }) {
+/** Demostración con un circuito real: el mismo modelo y simulador que usa el editor. */
+function CircuitDemo({ onOpenInEditor }: { onOpenInEditor?: (expr: string) => void }) {
+  const [presetId, setPresetId] = useState(PRESETS[0].id);
+  const preset = PRESETS.find(p => p.id === presetId)!;
+  const circuit = useMemo(() => circuitFromExpressions(preset.expr), [preset]);
+  const [on, setOn] = useState<Record<string, Bit>>({});
+  const [lastPreset, setLastPreset] = useState(presetId);
+  if (lastPreset !== presetId) { setLastPreset(presetId); setOn({}); }
+
+  const inputs = useMemo(() => circuit.nodes.filter(n => n.type === 'INPUT').sort((a, b) => (a.label < b.label ? -1 : 1)), [circuit]);
+  const outputs = useMemo(() => circuit.nodes.filter(n => n.type === 'OUTPUT').sort((a, b) => (a.label < b.label ? -1 : 1)), [circuit]);
+  // Una tabla por salida (todas comparten las mismas entradas en estos ejemplos).
+  const analyses = useMemo(() => outputs.map(o => analyzeOutput(circuit, o.id, { simplify: false })!), [circuit, outputs]);
+  const values = useMemo(() => simulate(circuit, on), [circuit, on]);
+  const activeRow = analyses[0].rows.findIndex(r => inputs.every(i => (on[i.id] ?? 0) === r.env[i.label]));
+  const summary = `${inputs.map(i => `${i.label}=${on[i.id] ?? 0}`).join(', ')}: ${outputs.map(o => `${o.label}=${values.get(o.id) ?? '?'}`).join(', ')}`;
+
   return (
-    <button onClick={onToggle} role="switch" aria-checked={on} aria-label={`Entrada ${label}`}
-      className={`flex items-center gap-2 px-3 py-2 rounded-lg border-2 font-mono font-bold ${on ? 'bg-green-100 border-green-600 text-green-900' : 'bg-white border-slate-400 text-slate-800'}`}>
-      {label}<span aria-hidden="true" className={`w-9 h-5 rounded-full relative ${on ? 'bg-green-600' : 'bg-slate-400'}`}><i className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${on ? 'left-[1.15rem]' : 'left-0.5'}`} /></span>{on ? 1 : 0}
-    </button>
-  );
-}
-
-/** Demostración interactiva: dos interruptores, una compuerta y su tabla de verdad. */
-function Demo() {
-  const [a, setA] = useState<0 | 1>(1);
-  const [b, setB] = useState<0 | 1>(0);
-  const [gate, setGate] = useState<DemoGate>('AND');
-  const out = apply(gate, a, b);
-  return (
-    <div className="bg-white text-slate-900 rounded-2xl p-5 shadow-xl w-full max-w-md" aria-label="Demostración interactiva de una compuerta">
-      <div role="group" aria-label="Tipo de compuerta" className="flex gap-1 mb-4">
-        {(['AND', 'OR', 'XOR', 'NAND'] as DemoGate[]).map(g => (
-          <button key={g} aria-pressed={gate === g} onClick={() => setGate(g)}
-            className={`flex-1 py-1.5 rounded-lg text-sm font-semibold border ${gate === g ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white border-slate-300 hover:bg-slate-50'}`}>{g}</button>
+    <div className="bg-white text-ink rounded-2xl p-5 shadow-raised w-full max-w-xl" aria-label="Demostración con un circuito real">
+      <div role="group" aria-label="Circuito de ejemplo" className="flex flex-wrap gap-1 mb-3">
+        {PRESETS.map(p => (
+          <button key={p.id} aria-pressed={presetId === p.id} onClick={() => setPresetId(p.id)}
+            className={`px-3 py-1.5 rounded-control text-sm font-semibold border ${presetId === p.id ? 'bg-brand-600 text-white border-brand-600' : 'bg-white border-slate-300 hover:bg-slate-50'}`}>{p.label}</button>
         ))}
       </div>
-      <div className="flex flex-wrap items-center justify-center gap-4">
-        <div className="flex flex-col gap-3"><Switch label="A" on={a === 1} onToggle={() => setA(a ? 0 : 1)} /><Switch label="B" on={b === 1} onToggle={() => setB(b ? 0 : 1)} /></div>
-        <svg viewBox="0 0 160 100" className="w-32 h-20" role="img" aria-label={`Compuerta ${gate} con salida ${out}`}>
-          <path d="M0 30 H40 M0 70 H40" stroke={a ? '#16a34a' : '#64748b'} strokeWidth="4" />
-          <path d="M0 70 H40" stroke={b ? '#16a34a' : '#64748b'} strokeWidth="4" />
-          <path d={gate === 'OR' || gate === 'XOR' ? 'M40 15 C70 15 100 25 115 50 C100 75 70 85 40 85 C52 65 52 35 40 15 Z' : 'M40 15 H75 A35 35 0 0 1 75 85 H40 Z'} fill={out ? '#dcfce7' : '#fff'} stroke="#334155" strokeWidth="3" />
-          {gate === 'XOR' && <path d="M32 15 C44 35 44 65 32 85" fill="none" stroke="#334155" strokeWidth="3" />}
-          {gate === 'NAND' && <circle cx="115" cy="50" r="5" fill="#fff" stroke="#334155" strokeWidth="3" />}
-          <path d={`M${gate === 'NAND' ? 120 : 115} 50 H150`} stroke={out ? '#16a34a' : '#64748b'} strokeWidth="4" />
-        </svg>
-        <div aria-live="polite" className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold border-4 ${out ? 'bg-yellow-300 border-yellow-500' : 'bg-slate-100 border-slate-400'}`}>
-          <span className="sr-only">Salida </span>{out}
-        </div>
-      </div>
-      <table className="mt-4 w-full text-center text-sm font-mono border border-slate-200">
-        <thead className="bg-slate-100"><tr><th scope="col">A</th><th scope="col">B</th><th scope="col">{gate}</th></tr></thead>
-        <tbody>{([[0, 0], [0, 1], [1, 0], [1, 1]] as [0 | 1, 0 | 1][]).map(([x, y]) => (
-          <tr key={`${x}${y}`} className={x === a && y === b ? 'bg-amber-200 font-bold' : ''}><td>{x}</td><td>{y}</td><td>{apply(gate, x, y)}</td></tr>
+      <p className="text-sm text-ink-soft mb-2">{preset.caption} <span className="text-muted">Haz clic en las entradas para encenderlas.</span></p>
+      <CircuitDiagram circuit={circuit} inputValues={on} label={`Circuito: ${preset.label}`} className="w-full h-auto bg-canvas rounded-control border border-line"
+        onToggleInput={id => setOn(v => ({ ...v, [id]: v[id] ? 0 : 1 }))} />
+      <p aria-live="polite" className="sr-only">{summary}</p>
+      <table className="mt-3 w-full text-center text-sm font-mono border border-line">
+        <caption className="sr-only">Tabla de verdad de {preset.label}</caption>
+        <thead className="bg-slate-100"><tr>
+          {inputs.map(i => <th scope="col" key={i.id}>{i.label}</th>)}
+          {outputs.map(o => <th scope="col" key={o.id} className="bg-brand-50 text-brand-800">{o.label}</th>)}
+        </tr></thead>
+        <tbody>{analyses[0].rows.map((row, ri) => (
+          <tr key={ri} aria-current={ri === activeRow ? 'true' : undefined} className={ri === activeRow ? 'bg-amber-200 font-bold' : ''}>
+            {inputs.map(i => <td key={i.id}>{row.env[i.label]}</td>)}
+            {analyses.map((a, ai) => <td key={ai}>{a.rows[ri].result}</td>)}
+          </tr>
         ))}</tbody>
       </table>
+      {onOpenInEditor && (
+        <div className="mt-3 flex justify-end">
+          <Button variant="ghost" onClick={() => onOpenInEditor(preset.expr)}>Abrir este circuito en el editor →</Button>
+        </div>
+      )}
     </div>
   );
 }
@@ -131,14 +139,14 @@ const FAQ = [
   { id: 'exportar', question: '¿Puedo exportar mis circuitos?', answer: <p>Sí: a imagen SVG o PNG para un reporte, y a JSON para volver a abrirlos después.</p> },
 ];
 
-export function Home() {
+export function Home({ onOpenInEditor }: { onOpenInEditor?: (expr: string) => void } = {}) {
   return (
     <div className="text-ink-soft font-sans">
       <section aria-label="Presentación" className="bg-gradient-to-br from-brand-800 via-brand-600 to-violet-700 text-white">
         <div className="max-w-6xl mx-auto px-4 py-12 md:py-16 grid md:grid-cols-2 gap-10 items-center">
           <div>
             <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight leading-tight">Aprende lógica digital construyendo circuitos</h1>
-            <p className="mt-4 text-lg text-brand-50">Escribe una expresión o arrastra compuertas, y mira al instante la tabla de verdad, la simplificación y el circuito.</p>
+            <p className="mt-4 text-lg text-brand-50">Escribe una expresión o arrastra compuertas, y mira al instante la tabla de verdad, la simplificación y el circuito. Pruébalo aquí mismo.</p>
             <div className="mt-6 flex flex-wrap gap-3">
               <LinkButton href="#/editor" variant="inverse" size="lg">Probar el editor</LinkButton>
               <LinkButton href="#/calculadora" variant="outline-inverse" size="lg">Usar la calculadora</LinkButton>
@@ -149,7 +157,7 @@ export function Home() {
               ))}
             </ul>
           </div>
-          <div className="flex justify-center md:justify-end"><Demo /></div>
+          <div className="flex justify-center md:justify-end"><CircuitDemo onOpenInEditor={onOpenInEditor} /></div>
         </div>
       </section>
 
