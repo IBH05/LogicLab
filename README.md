@@ -183,7 +183,7 @@ La [matriz de trazabilidad](docs/REQUISITOS.md) relaciona requisitos, Jira, comp
 | 3 | Funciones educativas | SCRUM-7 / RF-03 y SCRUM-9 / RF-05: Isauro; SCRUM-8 / RF-04: Ángel Raúl |
 | 4 | Pruebas y optimización | SCRUM-12 / RNF-02: Ángel Raúl; SCRUM-14 / RNF-04: Isauro |
 
-La organización proviene del equipo y corresponde al proyecto Jira **LogicLab-Software**. No se afirman Sprints completados ni cambios realizados en Jira. Ver [SCRUM.md](docs/SCRUM.md).
+La organización proviene del equipo y corresponde al proyecto Jira **LogicLab-Software**. No se afirman Sprints completados ni cambios realizados en Jira. Ver [SCRUM.md](docs/SCRUM.md). El trabajo existente se agrupa por Sprint, con sus commits como evidencia y sin fechas inventadas, en [SPRINTS.md](docs/SPRINTS.md).
 
 ## Git, CI/CD y Vercel
 

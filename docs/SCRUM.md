@@ -2,6 +2,8 @@
 
 Proyecto Jira: **LogicLab-Software**. Los cuatro Sprints están **planificados**, de acuerdo con la información del equipo. Esta configuración técnica no acredita su cierre. La URL del tablero y la consulta directa de Jira están pendientes; no se han modificado tickets ni inventado capturas.
 
+El trabajo ya realizado en el repositorio se organiza, de forma retrospectiva y sin presuponer ceremonias, en [SPRINTS.md](SPRINTS.md).
+
 ## Equipo
 
 | Integrante | Roles | Responsabilidades |
