@@ -6,7 +6,7 @@ import { cpus, platform, release } from 'node:os';
 test('RF-01/04/05/06 flujo completo y errores', async ({ page }, testInfo) => {
   const errors: string[] = [];
   page.on('pageerror', error => errors.push(error.message));
-  await page.goto('/');
+  await page.goto('/#/calculadora');
   await expect(page).toHaveTitle(/LogicLab/);
   await page.getByRole('button', { name: 'Calcular', exact: true }).click();
   await expect(page.getByRole('alert')).toContainText('ingresa');
@@ -36,7 +36,7 @@ test('RF-01/04/05/06 flujo completo y errores', async ({ page }, testInfo) => {
 });
 
 test('RNF-04 diseño adaptable y teclado', async ({ page }, testInfo) => {
-  await page.goto('/');
+  await page.goto('/#/calculadora');
   await page.getByRole('button', { name: 'A', exact: true }).click();
   await page.getByRole('button', { name: '+ OR', exact: true }).click();
   await page.getByRole('button', { name: 'B', exact: true }).click();
@@ -53,7 +53,7 @@ test('RNF-04 diseño adaptable y teclado', async ({ page }, testInfo) => {
 });
 
 test('RNF-05 accesibilidad automatizada', async ({ page }, testInfo) => {
-  await page.goto('/');
+  await page.goto('/#/calculadora');
   await page.getByLabel('Expresión Booleana').fill('!(A*B)^C');
   await page.getByRole('button', { name: 'Calcular', exact: true }).click();
   for (const tab of ['Tabla de Verdad', 'Simplificación', 'Diagrama Lógico']) {
@@ -67,7 +67,7 @@ test('RNF-05 accesibilidad automatizada', async ({ page }, testInfo) => {
 test('RNF-02 respuesta menor a tres segundos en casos definidos', async ({ page, browser }, testInfo) => {
   const cases = ['A+B', '(A+B)*(A\'+C)+B*C', 'A^B^C^D^E^F', '(A+B+C)*(D+E+F)'];
   const samples: { expression: string; elapsedMs: number }[] = [];
-  await page.goto('/');
+  await page.goto('/#/calculadora');
   for (const expression of cases) {
     for (let repetition = 0; repetition < 5; repetition++) {
       await page.getByLabel('Expresión Booleana').fill(expression);

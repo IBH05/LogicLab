@@ -28,6 +28,7 @@ El público principal son estudiantes de nivel medio superior y superior en sist
 - Representaciones algebraicas NAND y NOR; cada grupo de múltiples operandos representa una compuerta de múltiples entradas.
 - Circuito SVG, árbol ASCII, código Graphviz DOT y evaluación de una fila en el circuito.
 - Referencia de leyes booleanas y copiado de resultados.
+- **Página de inicio** con una demostración interactiva de compuertas, tarjetas de cada herramienta y una ruta de aprendizaje. Hay enlaces directos (`#/calculadora`, `#/editor`, `#/ejercicios`) y funcionan los botones atrás/adelante del navegador.
 - **Mapa de Karnaugh** de 1 a 5 variables (5 = dos mapas), con los grupos del resultado SOP resaltados.
 - **Editor de circuitos drag & drop** (pestaña «Editor de circuitos»): se arrastran entradas, salidas y compuertas NOT, AND, OR, NAND, NOR, XOR y XNOR (AND/OR/NAND/NOR de 2 a 4 entradas) y se conectan con cables. Las entradas son interruptores y las salidas LED; los cables se colorean según el valor de la señal.
 - **Análisis en vivo del circuito dibujado:** tabla de verdad (por simulación directa), expresión, SOP/POS/NAND/NOR, procedimiento de simplificación, Karnaugh, **caminos** entrada → salida con su retardo en niveles de compuertas, y **costo** (compuertas, entradas y circuitos integrados 74xx estimados).

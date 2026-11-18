@@ -87,6 +87,7 @@ test('alarma: expresión → circuito → solo NAND con la misma tabla', async (
 });
 
 test('la calculadora abre su expresión en el editor', async ({ page }) => {
+  await page.goto('/#/calculadora');
   await page.getByLabel('Expresión Booleana').fill('F = A*B + C');
   await page.getByRole('button', { name: 'Calcular', exact: true }).click();
   await page.getByRole('button', { name: 'Mapa de Karnaugh', exact: true }).click();
@@ -153,4 +154,34 @@ test('accesibilidad y diseño adaptable del editor y los ejercicios', async ({ p
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `ancho ${width}`).toBe(true);
   }
   void testInfo;
+});
+
+test('inicio: demo interactiva, navegación y enlaces directos', async ({ page }) => {
+  await expect(page.getByRole('heading', { level: 1, name: /Aprende lógica digital/ })).toBeVisible();
+  // demo: AND con A=1, B=0 → 0; al encender B → 1
+  await expect(page.getByRole('img', { name: 'Compuerta AND con salida 0' })).toBeVisible();
+  await page.getByRole('switch', { name: 'Entrada B' }).click();
+  await expect(page.getByRole('img', { name: 'Compuerta AND con salida 1' })).toBeVisible();
+  await page.getByRole('button', { name: 'XOR', exact: true }).click();
+  await expect(page.getByRole('img', { name: 'Compuerta XOR con salida 0' })).toBeVisible();
+  // tarjetas y botón atrás
+  await page.getByRole('link', { name: /Ejercicios/ }).first().click();
+  await expect(page).toHaveURL(/#\/ejercicios$/);
+  await expect(page.getByRole('heading', { level: 1, name: 'Ejercicios' })).toBeVisible();
+  await page.goBack();
+  await expect(page.getByRole('heading', { level: 1, name: /Aprende lógica digital/ })).toBeVisible();
+  // enlace directo
+  await page.goto('/#/editor');
+  await expect(page.getByRole('heading', { name: 'Editor de circuitos lógicos' })).toBeVisible();
+  const r = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
+  expect(r.violations.map(v => `${v.id}: ${v.nodes[0]?.html}`)).toEqual([]);
+});
+
+test('inicio: accesibilidad y diseño adaptable', async ({ page }) => {
+  const r = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
+  expect(r.violations.map(v => `${v.id}: ${v.nodes[0]?.html}`)).toEqual([]);
+  for (const width of [320, 390, 768, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `ancho ${width}`).toBe(true);
+  }
 });
